@@ -1,0 +1,643 @@
+<div class="flex h-full bg-[var(--bg-page)] text-[var(--text-primary)]">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-[var(--bg-card)] flex flex-col flex-shrink-0 border-r border-[var(--border-color)] shadow-md">
+    <div class="p-4 border-b border-[var(--border-color)]">
+      <h2 class="text-xl font-bold">Painel Admin</h2>
+      <p class="text-sm text-[var(--text-secondary)]">{{ dataService.settings().storeName }}</p>
+    </div>
+    <nav class="flex-1 p-2 space-y-1 overflow-y-auto">
+      @for (item of sidebarNavItems(); track item.id) {
+        <button 
+          (click)="activeAdminView.set(item.id)"
+          class="w-full text-left px-4 py-2.5 rounded-md transition-colors duration-200 flex items-center text-sm font-medium"
+          [class.bg-[var(--color-primary)]]="activeAdminView() === item.id"
+          [class.text-[var(--color-text-on-primary)]]="activeAdminView() === item.id"
+          [class.hover:bg-[var(--bg-page)]]="activeAdminView() !== item.id"
+          [class.text-[var(--text-secondary)]]="activeAdminView() !== item.id">
+          <span class="mr-3 text-lg">{{ item.icon }}</span>
+          {{ item.label }}
+           @if (item.id === 'orders' && pendingOrders().length > 0) {
+              <span class="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                {{ pendingOrders().length }}
+              </span>
+            }
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 overflow-y-auto">
+    @switch (activeAdminView()) {
+      @case ('orders') {
+        <h1 class="text-3xl font-bold mb-6">Pedidos Online</h1>
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-4">
+          <!-- Pending -->
+          <div class="bg-[var(--bg-card)] rounded-lg shadow p-3"><h3 class="font-bold p-2">Pendentes ({{pendingOrders().length}})</h3>
+            <div class="space-y-2 h-[75vh] overflow-y-auto p-1">
+              @for(order of pendingOrders(); track order.id) {
+                <div class="bg-yellow-100/60 p-3 rounded-md border border-yellow-300 text-yellow-900">
+                  <p class="font-bold">{{order.customerName}}</p><p class="text-sm font-mono">#{{order.id.slice(-6)}}</p>
+                  <p class="font-semibold my-1">R$ {{order.total.toFixed(2)}}</p>
+                  <div class="flex gap-2 mt-2">
+                    <button (click)="acceptOrder(order)" class="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600">Aceitar</button>
+                    <button (click)="cancelOrder(order)" class="bg-red-500 text-white px-2 py-1 text-xs rounded hover:bg-red-600">Cancelar</button>
+                    <button (click)="viewOrder(order)" class="bg-slate-500 text-white px-2 py-1 text-xs rounded hover:bg-slate-600">Ver</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Confirmed -->
+          <div class="bg-[var(--bg-card)] rounded-lg shadow p-3"><h3 class="font-bold p-2">Confirmados</h3>
+             <div class="space-y-2 h-[75vh] overflow-y-auto p-1">
+              @for(order of confirmedOrders(); track order.id) {
+                <div class="bg-blue-100/60 p-3 rounded-md border border-blue-300 text-blue-900">
+                  <p class="font-bold">{{order.customerName}}</p><p class="text-sm font-mono">#{{order.id.slice(-6)}}</p>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Preparing -->
+          <div class="bg-[var(--bg-card)] rounded-lg shadow p-3"><h3 class="font-bold p-2">Em Preparo</h3>
+            <div class="space-y-2 h-[75vh] overflow-y-auto p-1">
+              @for(order of preparingOrders(); track order.id) {
+                <div class="bg-purple-100/60 p-3 rounded-md border border-purple-300 text-purple-900">
+                  <p class="font-bold">{{order.customerName}}</p><p class="text-sm font-mono">#{{order.id.slice(-6)}}</p>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Awaiting Delivery -->
+          <div class="bg-[var(--bg-card)] rounded-lg shadow p-3"><h3 class="font-bold p-2">Pronto P/ Entrega</h3>
+            <div class="space-y-2 h-[75vh] overflow-y-auto p-1">
+              @for(order of awaitingDeliveryOrders(); track order.id) {
+                <div class="bg-orange-100/60 p-3 rounded-md border border-orange-300 text-orange-900">
+                  <p class="font-bold">{{order.customerName}}</p><p class="text-sm font-mono">#{{order.id.slice(-6)}}</p>
+                  <button (click)="sendForDelivery(order)" class="bg-cyan-500 text-white px-2 py-1 text-xs rounded hover:bg-cyan-600 mt-2">Chamar Entregador</button>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Out for Delivery -->
+          <div class="bg-[var(--bg-card)] rounded-lg shadow p-3"><h3 class="font-bold p-2">Saiu para Entrega</h3>
+            <div class="space-y-2 h-[75vh] overflow-y-auto p-1">
+              @for(order of outForDeliveryOrders(); track order.id) {
+                <div class="bg-teal-100/60 p-3 rounded-md border border-teal-300 text-teal-900">
+                  <p class="font-bold">{{order.customerName}}</p><p class="text-sm font-mono">#{{order.id.slice(-6)}}</p>
+                  <button (click)="markAsDelivered(order)" class="bg-green-500 text-white px-2 py-1 text-xs rounded hover:bg-green-600 mt-2">Marcar como Entregue</button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      @case ('cash_register') {
+        <h1 class="text-3xl font-bold mb-6">Caixa Diário</h1>
+        @if(dataService.activeCashRegister(); as register) {
+            <div class="bg-[var(--bg-card)] p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 class="text-2xl font-bold text-green-600">Caixa Aberto</h2>
+                    <p class="text-[var(--text-secondary)]">Aberto em: {{ register.openingTime | date:'dd/MM/yyyy HH:mm' }}</p>
+                  </div>
+                  <button (click)="openModal('close_cash_register')" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">Fechar Caixa</button>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div class="bg-[var(--bg-page)] p-4 rounded-lg"><p class="text-sm text-[var(--text-secondary)]">Saldo Inicial</p><p class="text-xl font-bold">R$ {{ register.startingBalance.toFixed(2) }}</p></div>
+                  <div class="bg-[var(--bg-page)] p-4 rounded-lg"><p class="text-sm text-[var(--text-secondary)]">Receita do Dia</p><p class="text-xl font-bold text-green-600">R$ 0.00</p></div>
+                  <div class="bg-[var(--bg-page)] p-4 rounded-lg"><p class="text-sm text-[var(--text-secondary)]">Pagamentos</p><p class="text-xl font-bold">R$ 0.00</p></div>
+                  <div class="bg-[var(--bg-page)] p-4 rounded-lg"><p class="text-sm text-[var(--text-secondary)]">Total em Caixa</p><p class="text-xl font-bold">R$ 0.00</p></div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4">Vendas do Dia</h3>
+                <div class="h-96 overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                  <table class="w-full text-sm text-left">
+                    <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">ID</th><th>Tipo</th><th>Total</th><th>Pagamento</th><th>Status Pag.</th></tr></thead>
+                    <tbody>
+                        @for(order of dataService.orders(); track order.id) {
+                            @if(order.timestamp >= register.openingTime) {
+                                <tr class="border-b border-[var(--border-color)] last:border-0">
+                                    <td class="p-3 font-mono">{{order.id.slice(-6)}}</td>
+                                    <td>{{order.isOnlineOrder ? 'Online' : 'PDV'}}</td>
+                                    <td class="font-semibold">R$ {{order.total.toFixed(2)}}</td>
+                                    <td class="capitalize">{{order.paymentMethod}}</td>
+                                    <td>
+                                        @if(order.paymentStatus === 'pending' && order.isOnlineOrder) {
+                                            <select [ngModel]="order.paymentStatus" (ngModelChange)="dataService.updateOrderPaymentStatus(order.id, $event)" class="text-xs p-1 rounded border border-[var(--border-color)] bg-transparent">
+                                                @for(status of paymentStatuses; track status.key) { <option [value]="status.key">{{ status.text }}</option> }
+                                            </select>
+                                        } @else {
+                                            <span class="px-2 py-1 text-xs rounded-full" [class.bg-green-100]="order.paymentStatus === 'paid'" [class.text-green-800]="order.paymentStatus === 'paid'" [class.bg-red-100]="order.paymentStatus !== 'paid'" [class.text-red-800]="order.paymentStatus !== 'paid'">{{ getPaymentStatusText(order.paymentStatus) }}</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+        } @else {
+            <div class="text-center bg-[var(--bg-card)] p-12 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4">Caixa Fechado</h2>
+                <p class="text-[var(--text-secondary)] mb-6">Abra o caixa para começar a registrar as vendas do dia.</p>
+                <button (click)="openCashRegisterModal()" class="bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-3 px-6 rounded-lg hover:bg-[var(--color-primary-hover)]">Abrir Caixa</button>
+            </div>
+        }
+      }
+      @case ('finance') {
+        <h1 class="text-3xl font-bold mb-6">Financeiro</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow"><p class="text-sm text-[var(--text-secondary)]">Receita Bruta</p><p class="text-2xl font-bold text-green-600">R$ 0.00</p></div>
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow"><p class="text-sm text-[var(--text-secondary)]">Custo Total</p><p class="text-2xl font-bold text-orange-600">R$ 0.00</p></div>
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow"><p class="text-sm text-[var(--text-secondary)]">Despesas</p><p class="text-2xl font-bold text-red-600">R$ 0.00</p></div>
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow"><p class="text-sm text-[var(--text-secondary)]">Lucro Líquido</p><p class="text-2xl font-bold text-blue-600">R$ 0.00</p></div>
+        </div>
+
+        <div class="bg-[var(--bg-card)] p-6 rounded-lg shadow">
+           <div class="border-b border-[var(--border-color)] mb-4">
+              <nav class="flex -mb-px space-x-6">
+                <button (click)="activeFinanceTab.set('expenses')" [class.border-[var(--color-primary)]]="activeFinanceTab() === 'expenses'" [class.text-[var(--color-primary)]]="activeFinanceTab() === 'expenses'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Despesas</button>
+                <button (click)="activeFinanceTab.set('payable')" [class.border-[var(--color-primary)]]="activeFinanceTab() === 'payable'" [class.text-[var(--color-primary)]]="activeFinanceTab() === 'payable'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Contas a Pagar</button>
+                <button (click)="activeFinanceTab.set('receivable')" [class.border-[var(--color-primary)]]="activeFinanceTab() === 'receivable'" [class.text-[var(--color-primary)]]="activeFinanceTab() === 'receivable'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Contas a Receber</button>
+              </nav>
+            </div>
+            
+            @switch (activeFinanceTab()) {
+              @case ('expenses') {
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-semibold">Despesas</h3><button (click)="startNew('expense')" class="bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar</button></div>
+                 <div class="h-96 overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                  <table class="w-full text-sm text-left">
+                    <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Data</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead>
+                    <tbody>
+                        @for(item of dataService.expenses(); track item.id) {
+                            <tr class="border-b border-[var(--border-color)] last:border-0">
+                                <td class="p-3">{{item.date | date:'dd/MM/yy'}}</td><td>{{item.description}}</td><td class="font-semibold text-red-600">R$ {{item.amount.toFixed(2)}}</td>
+                                <td class="space-x-2"><button (click)="editItem(item, 'expense')" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(item.id, 'expense')" class="text-red-600 hover:underline">Excluir</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                  </table>
+                </div>
+              }
+              @case ('payable') {
+                 <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-semibold">Contas a Pagar</h3><button (click)="startNew('payable')" class="bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar</button></div>
+                 <div class="h-96 overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                  <table class="w-full text-sm text-left">
+                    <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Vencimento</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody>
+                        @for(item of dataService.accountsPayable(); track item.id) {
+                            <tr class="border-b border-[var(--border-color)] last:border-0">
+                                <td class="p-3">{{item.dueDate | date:'dd/MM/yy'}}</td><td>{{item.description}}</td><td class="font-semibold">R$ {{item.amount.toFixed(2)}}</td>
+                                <td><button (click)="togglePayableStatus(item)" class="px-2 py-0.5 text-xs rounded-full" [class.bg-green-100]="item.isPaid" [class.text-green-800]="item.isPaid" [class.bg-red-100]="!item.isPaid" [class.text-red-800]="!item.isPaid">{{item.isPaid ? 'Pago' : 'Pendente'}}</button></td>
+                                <td class="space-x-2"><button (click)="editItem(item, 'payable')" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(item.id, 'payable')" class="text-red-600 hover:underline">Excluir</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                  </table>
+                </div>
+              }
+              @case ('receivable') {
+                 <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-semibold">Contas a Receber (Fiado)</h3></div>
+                 <div class="h-96 overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                  <table class="w-full text-sm text-left">
+                    <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Data</th><th>Cliente</th><th>Valor</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @for(order of accountsReceivable(); track order.id) {
+                            <tr class="border-b border-[var(--border-color)] last:border-0">
+                                <td class="p-3">{{order.timestamp | date:'dd/MM/yy'}}</td><td>{{order.customerName}}</td><td class="font-semibold">R$ {{order.total.toFixed(2)}}</td>
+                                <td><button (click)="markReceivableAsPaid(order)" class="bg-green-500 text-white text-xs py-1 px-2 rounded hover:bg-green-600">Marcar como Pago</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            }
+        </div>
+      }
+      @case ('products') {
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Produtos</h1>
+          <button (click)="startNewProduct()" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Produto</button>
+        </div>
+        <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
+           <div class="h-[75vh] overflow-y-auto">
+             <table class="w-full text-sm text-left">
+              <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Produto</th><th>Categoria</th><th>Preço Base</th><th>Ações</th></tr></thead>
+              <tbody>
+                @for(product of dataService.products(); track product.id) {
+                  <tr class="border-b border-[var(--border-color)] last:border-0">
+                    <td class="p-3 font-semibold">{{ product.name }}</td>
+                    <td>{{ getCategoryName(product.categoryId) }}</td>
+                    <td>R$ {{ product.basePrice.toFixed(2) }}</td>
+                    <td class="space-x-2"><button (click)="editProduct(product)" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(product.id, 'product')" class="text-red-600 hover:underline">Excluir</button></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+           </div>
+        </div>
+      }
+      @case ('modifiers') {
+        <h1 class="text-3xl font-bold mb-6">Adicionais</h1>
+         <div class="flex justify-end mb-4">
+            <button (click)="startNew('modifier_group')" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Grupo</button>
+          </div>
+        <div class="space-y-6">
+          @for(group of groupedModifiers(); track group.id) {
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
+              <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xl font-semibold">{{group.name}}</h3>
+                <div class="space-x-2">
+                   <button (click)="startNewModifier(group)" class="bg-green-500 text-white text-xs font-bold py-1 px-3 rounded-lg hover:bg-green-600">+ Adicional</button>
+                  <button (click)="editItem(group, 'modifier_group')" class="text-blue-600 hover:underline text-sm">Editar Grupo</button>
+                  <button (click)="confirmDelete(group.id, 'modifier_group')" class="text-red-600 hover:underline text-sm">Excluir Grupo</button>
+                </div>
+              </div>
+              <div class="h-48 overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                <table class="w-full text-sm text-left">
+                  <thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Nome</th><th>Preço</th><th>Ações</th></tr></thead>
+                  <tbody>
+                    @for(modifier of group.modifiers; track modifier.id) {
+                      <tr class="border-b border-[var(--border-color)] last:border-0">
+                        <td class="p-3 font-medium">{{modifier.name}}</td><td>R$ {{modifier.price.toFixed(2)}}</td>
+                        <td class="space-x-2"><button (click)="editModifier(modifier)" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(modifier.id, 'modifier')" class="text-red-600 hover:underline">Excluir</button></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </div>
+      }
+       @case ('categories') {
+        <div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Categorias de Produtos</h1><button (click)="startNew('category')" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Categoria</button></div>
+        <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
+           <div class="h-[75vh] overflow-y-auto"><table class="w-full text-sm text-left"><thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Nome</th><th>Ações</th></tr></thead><tbody>
+                @for(item of dataService.categories(); track item.id) {
+                  <tr class="border-b border-[var(--border-color)] last:border-0">
+                    <td class="p-3 font-semibold">{{ item.name }}</td><td class="space-x-2"><button (click)="editItem(item, 'category')" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(item.id, 'category')" class="text-red-600 hover:underline">Excluir</button></td>
+                  </tr>
+                }</tbody></table></div></div>
+      }
+      @case ('delivery') {
+        <div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Áreas de Entrega</h1><button (click)="startNew('delivery_zone')" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Bairro</button></div>
+        <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
+           <div class="h-[75vh] overflow-y-auto"><table class="w-full text-sm text-left"><thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Bairro</th><th>Taxa</th><th>Ações</th></tr></thead><tbody>
+                @for(item of dataService.deliveryZones(); track item.id) {
+                  <tr class="border-b border-[var(--border-color)] last:border-0">
+                    <td class="p-3 font-semibold">{{ item.neighborhood }}</td><td>R$ {{ item.fee.toFixed(2) }}</td><td class="space-x-2"><button (click)="editItem(item, 'delivery_zone')" class="text-blue-600 hover:underline">Editar</button><button (click)="confirmDelete(item.id, 'delivery_zone')" class="text-red-600 hover:underline">Excluir</button></td>
+                  </tr>
+                }</tbody></table></div></div>
+      }
+      @case ('settings') {
+        <h1 class="text-3xl font-bold mb-6">Configurações do Sistema</h1>
+        @if(settings(); as settings) {
+        <form #settingsForm="ngForm" (ngSubmit)="saveSettings()">
+        <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
+           <div class="border-b border-[var(--border-color)] mb-4">
+              <nav class="flex -mb-px space-x-6">
+                <button type="button" (click)="activeSettingsTab.set('store')" [class.border-[var(--color-primary)]]="activeSettingsTab() === 'store'" [class.text-[var(--color-primary)]]="activeSettingsTab() === 'store'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Informações da Loja</button>
+                <button type="button" (click)="activeSettingsTab.set('menu')" [class.border-[var(--color-primary)]]="activeSettingsTab() === 'menu'" [class.text-[var(--color-primary)]]="activeSettingsTab() === 'menu'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Cardápio Digital</button>
+                <button type="button" (click)="activeSettingsTab.set('operational')" [class.border-[var(--color-primary)]]="activeSettingsTab() === 'operational'" [class.text-[var(--color-primary)]]="activeSettingsTab() === 'operational'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Operacional</button>
+                <button type="button" (click)="activeSettingsTab.set('appearance')" [class.border-[var(--color-primary)]]="activeSettingsTab() === 'appearance'" [class.text-[var(--color-primary)]]="activeSettingsTab() === 'appearance'" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Aparência</button>
+              </nav>
+            </div>
+            <div class="p-2">
+            @switch (activeSettingsTab()) {
+              @case ('store') {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <div><label class="block text-sm font-medium">Nome da Loja</label><input type="text" [(ngModel)]="settings.storeName" name="storeName" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                    <div><label class="block text-sm font-medium">Documento (CNPJ/CPF)</label><input type="text" [(ngModel)]="settings.document" name="document" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                  </div>
+                  <div class="space-y-4">
+                    <div><label class="block text-sm font-medium">Endereço</label><input type="text" [(ngModel)]="settings.address" name="address" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                    <div><label class="block text-sm font-medium">Telefone Fixo</label><input type="text" [(ngModel)]="settings.phone" name="phone" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                  </div>
+                </div>
+              }
+              @case ('menu') {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                     <div><label class="block text-sm font-medium">Nº WhatsApp para Pedidos</label><input type="text" [(ngModel)]="settings.whatsappNumber" name="whatsappNumber" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                      <div><label class="block text-sm font-medium">Instagram URL</label><input type="text" [(ngModel)]="settings.instagramUrl" name="instagramUrl" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                       <div><label class="block text-sm font-medium">Facebook URL</label><input type="text" [(ngModel)]="settings.facebookUrl" name="facebookUrl" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium">Pedido Mínimo (R$)</label><input type="number" [(ngModel)]="settings.minOrderValue" name="minOrderValue" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                        <div><label class="block text-sm font-medium">Entrega Grátis acima de (R$)</label><input type="number" [(ngModel)]="settings.freeDeliveryThreshold" name="freeDeliveryThreshold" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                      </div>
+                       <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium">Tempo Mín. Entrega (min)</label><input type="number" [(ngModel)]="settings.minDeliveryTime" name="minDeliveryTime" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                        <div><label class="block text-sm font-medium">Tempo Máx. Entrega (min)</label><input type="number" [(ngModel)]="settings.maxDeliveryTime" name="maxDeliveryTime" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                      </div>
+                      <div><label class="block text-sm font-medium">Acréscimo Fiado (%)</label><input type="number" [(ngModel)]="settings.fiadoSurchargePercentage" name="fiadoSurchargePercentage" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                  </div>
+                  <div class="space-y-4">
+                      <div><label class="block text-sm font-medium">Mensagem de Saudação</label><textarea [(ngModel)]="settings.greetingMessage" name="greetingMessage" rows="3" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></textarea></div>
+                      <div class="pt-2"><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" [(ngModel)]="settings.isTemporarilyClosed" name="isTemporarilyClosed" class="form-checkbox h-5 w-5 rounded text-[var(--color-primary)]"> Fechamento Temporário</label></div>
+                      <div><label class="block text-sm font-medium">Mensagem (Fechado Temp.)</label><input type="text" [(ngModel)]="settings.temporaryClosureMessage" name="temporaryClosureMessage" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                  </div>
+                </div>
+                 <h3 class="text-lg font-semibold mt-8 mb-4">Horário de Funcionamento</h3>
+                 <div class="space-y-3">
+                  @for(day of settings.openingHours; track day.day) {
+                    <div class="grid grid-cols-4 gap-4 items-center p-2 rounded-md bg-[var(--bg-page)]">
+                      <label class="flex items-center gap-2 cursor-pointer font-medium"><input type="checkbox" [(ngModel)]="day.isOpen" [name]="day.day + '_isOpen'" class="form-checkbox h-5 w-5 rounded text-[var(--color-primary)]"> {{day.day}}</label>
+                      <div class="col-span-3 grid grid-cols-2 gap-4">
+                        <div><label class="block text-xs">Abre</label><input type="time" [(ngModel)]="day.open" [name]="day.day + '_open'" [disabled]="!day.isOpen" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)] disabled:opacity-50"></div>
+                        <div><label class="block text-xs">Fecha</label><input type="time" [(ngModel)]="day.close" [name]="day.day + '_close'" [disabled]="!day.isOpen" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)] disabled:opacity-50"></div>
+                      </div>
+                    </div>
+                  }
+                 </div>
+              }
+              @case ('operational') {
+                  <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold">Gerenciamento de Funcionários</h3><button type="button" (click)="startNew('user')" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Funcionário</button></div>
+                  <div class="h-[60vh] overflow-y-auto border border-[var(--border-color)] rounded-lg">
+                    <table class="w-full text-sm text-left"><thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Nome</th><th>PIN</th><th>Permissões</th><th>Ações</th></tr></thead><tbody>
+                          @for(user of dataService.users(); track user.id) {
+                            <tr class="border-b border-[var(--border-color)] last:border-0">
+                              <td class="p-3 font-semibold">{{user.name}}</td><td>****</td>
+                              <td>@if(user.isAdmin){<span class="px-2 py-0.5 text-xs rounded-full bg-purple-200 text-purple-800 font-bold">ADMINISTRADOR</span>} @else {<span>{{user.permissions.length}} permissões</span>}</td>
+                              <td class="space-x-2"><button type="button" (click)="editItem(user, 'user')" class="text-blue-600 hover:underline">Editar</button><button type="button" (click)="confirmDelete(user.id, 'user')" class="text-red-600 hover:underline">Excluir</button></td>
+                            </tr>
+                          }</tbody></table></div>
+              }
+              @case ('appearance') {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div class="space-y-4">
+                      <h3 class="text-lg font-semibold">Imagens</h3>
+                      <div class="space-y-2">
+                        <label class="block text-sm font-medium">Logo</label>
+                        <img [src]="settings.logoUrl" class="w-24 h-24 rounded-full object-cover bg-slate-200 mb-2">
+                        <input type="file" accept="image/*" (change)="onLogoChange($event)" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                      </div>
+                       <div class="space-y-2">
+                        <label class="block text-sm font-medium">Banner Principal</label>
+                        <img [src]="settings.bannerUrl" class="w-full h-24 rounded-md object-cover bg-slate-200 mb-2">
+                        <input type="file" accept="image/*" (change)="onBannerChange($event)" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                      </div>
+                      <div class="space-y-2">
+                        <label class="block text-sm font-medium">Banners Promocionais (Slideshow)</label>
+                        @for(banner of settings.promoBanners; track banner; let i = $index) {
+                           <div class="flex items-center gap-2"><img [src]="banner" class="w-32 h-16 rounded object-cover bg-slate-200"><button type="button" (click)="removePromoBanner(i)" class="text-red-500 text-sm">Remover</button></div>
+                        }
+                        <input type="file" accept="image/*" (change)="addPromoBanner($event)" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                      </div>
+                  </div>
+                  <div class="space-y-4">
+                    <h3 class="text-lg font-semibold">Cores da Marca</h3>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.primaryColor"></div><div><label class="block text-xs">Primária</label><input type="color" [(ngModel)]="settings.primaryColor" name="primaryColor" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.primaryColorHover"></div><div><label class="block text-xs">Primária (Hover)</label><input type="color" [(ngModel)]="settings.primaryColorHover" name="primaryColorHover" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.accentColor"></div><div><label class="block text-xs">Destaque (Accent)</label><input type="color" [(ngModel)]="settings.accentColor" name="accentColor" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                  </div>
+                   <div class="space-y-4">
+                    <h3 class="text-lg font-semibold">Cores do Tema</h3>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.backgroundColorPage"></div><div><label class="block text-xs">Fundo da Página</label><input type="color" [(ngModel)]="settings.backgroundColorPage" name="backgroundColorPage" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.backgroundColorCard"></div><div><label class="block text-xs">Fundo de Cards</label><input type="color" [(ngModel)]="settings.backgroundColorCard" name="backgroundColorCard" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.textColorPrimary"></div><div><label class="block text-xs">Texto Primário</label><input type="color" [(ngModel)]="settings.textColorPrimary" name="textColorPrimary" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.textColorSecondary"></div><div><label class="block text-xs">Texto Secundário</label><input type="color" [(ngModel)]="settings.textColorSecondary" name="textColorSecondary" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.textColorOnPrimary"></div><div><label class="block text-xs">Texto Sobre Cor Primária</label><input type="color" [(ngModel)]="settings.textColorOnPrimary" name="textColorOnPrimary" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                     <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full border border-[var(--border-color)]" [style.backgroundColor]="settings.borderColor"></div><div><label class="block text-xs">Cor da Borda</label><input type="color" [(ngModel)]="settings.borderColor" name="borderColor" class="w-full p-0 h-8 border-0 cursor-pointer rounded-r-0 bg-transparent"></div></div>
+                  </div>
+                </div>
+              }
+            }
+            </div>
+            <div class="mt-8 flex justify-end">
+              <button type="submit" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700">Salvar Alterações</button>
+            </div>
+        </div>
+        </form>
+        }
+      }
+      @default {
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4">{{ activeAdminView() }}</h2>
+          <p>Esta seção ainda não foi implementada.</p>
+        </div>
+      }
+    }
+  </main>
+</div>
+
+
+<!-- MODALS -->
+
+<!-- Delete Confirmation Modal -->
+@if (itemToDelete) {
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+  <div class="bg-[var(--bg-card)] rounded-lg p-8 shadow-xl text-center" (click)="$event.stopPropagation()">
+    <h3 class="text-xl font-bold mb-4">Confirmar Exclusão</h3>
+    <p class="text-[var(--text-secondary)] mb-6">Tem certeza que deseja excluir este item?<br>Esta ação não pode ser desfeita.</p>
+    <div class="flex justify-center gap-4">
+      <button (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button>
+      <button (click)="executeDelete()" class="bg-red-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-600">Excluir</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Simple Editor Modal (Category, Modifier Group, Delivery Zone, Expense, Payable) -->
+@if(activeModal() === 'category' || activeModal() === 'modifier_group' || activeModal() === 'delivery_zone' || activeModal() === 'expense' || activeModal() === 'payable') {
+  @let item = editingCategory() ?? editingModifierGroup() ?? editingDeliveryZone() ?? editingExpense() ?? editingPayable();
+  @if(item) {
+     <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+       <form (ngSubmit)="saveItem(activeModal())" class="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl w-full max-w-md" (click)="$event.stopPropagation()">
+          <h3 class="text-xl font-bold mb-6">
+            @if (activeModal() === 'category') { {{ item.id.startsWith('new') ? 'Nova' : 'Editar' }} Categoria }
+            @if (activeModal() === 'modifier_group') { {{ item.id.startsWith('new') ? 'Novo' : 'Editar' }} Grupo de Adicionais }
+            @if (activeModal() === 'delivery_zone') { {{ item.id.startsWith('new') ? 'Novo' : 'Editar' }} Bairro }
+            @if (activeModal() === 'expense') { {{ item.id.startsWith('new') ? 'Nova' : 'Editar' }} Despesa }
+            @if (activeModal() === 'payable') { {{ item.id.startsWith('new') ? 'Nova' : 'Editar' }} Conta a Pagar }
+          </h3>
+          @if (activeModal() === 'category') { <div><label>Nome</label><input type="text" [(ngModel)]="editingCategory()!.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div> }
+          @if (activeModal() === 'modifier_group') { 
+              <div class="space-y-4">
+                  <div><label>Nome do Grupo</label><input type="text" [(ngModel)]="editingModifierGroup()!.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                  <div><label>Máx. Seleção</label><input type="number" [(ngModel)]="editingModifierGroup()!.maxSelection" name="max" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                  <div><label class="flex items-center gap-2"><input type="checkbox" [(ngModel)]="editingModifierGroup()!.isRequired" name="required" class="form-checkbox"> Obrigatório</label></div>
+              </div>
+          }
+          @if (activeModal() === 'delivery_zone') {
+              <div class="space-y-4">
+                 <div><label>Nome do Bairro</label><input type="text" [(ngModel)]="editingDeliveryZone()!.neighborhood" name="neighborhood" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                 <div><label>Taxa de Entrega (R$)</label><input type="number" [(ngModel)]="editingDeliveryZone()!.fee" name="fee" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+              </div>
+          }
+           @if (activeModal() === 'expense') {
+              <div class="space-y-4">
+                 <div><label>Descrição</label><input type="text" [(ngModel)]="editingExpense()!.description" name="description" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                 <div><label>Valor (R$)</label><input type="number" [(ngModel)]="editingExpense()!.amount" name="amount" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                 <div><label>Data</label><input type="date" [(ngModel)]="editingExpense()!.date" name="date" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+              </div>
+          }
+           @if (activeModal() === 'payable') {
+              <div class="space-y-4">
+                 <div><label>Descrição</label><input type="text" [(ngModel)]="editingPayable()!.description" name="description" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                 <div><label>Valor (R$)</label><input type="number" [(ngModel)]="editingPayable()!.amount" name="amount" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+                 <div><label>Data de Vencimento</label><input type="date" [(ngModel)]="editingPayable()!.dueDate" name="dueDate" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+              </div>
+          }
+          <div class="flex justify-end gap-4 mt-6"><button type="button" (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button><button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Salvar</button></div>
+       </form>
+     </div>
+  }
+}
+
+<!-- Modifier Modal -->
+@if(activeModal() === 'modifier' && editingModifier(); as modifier) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <form (ngSubmit)="saveModifier()" class="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold mb-6">{{ modifier.id.startsWith('new') ? 'Novo' : 'Editar' }} Adicional</h3>
+      <div class="space-y-4">
+        <div><label>Nome</label><input type="text" [(ngModel)]="modifier.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+        <div><label>Preço (R$)</label><input type="number" [(ngModel)]="modifier.price" name="price" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+        <div><label>Custo (R$)</label><input type="number" [(ngModel)]="modifier.cost" name="cost" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+      </div>
+       <div class="flex justify-end gap-4 mt-6"><button type="button" (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button><button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Salvar</button></div>
+    </form>
+  </div>
+}
+
+<!-- Product Modal -->
+@if(activeModal() === 'product' && editingProduct(); as product) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <form (ngSubmit)="saveProduct()" class="bg-[var(--bg-card)] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+       <h3 class="text-xl font-bold p-6 border-b border-[var(--border-color)]">{{ product.id.startsWith('new') ? 'Novo' : 'Editar' }} Produto</h3>
+       <div class="p-6 overflow-y-auto space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Nome do Produto</label><input type="text" [(ngModel)]="product.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+            <div><label>Categoria</label>
+              <select [(ngModel)]="product.categoryId" name="categoryId" required class="w-full p-2 mt-1 border rounded bg-transparent">
+                @for(cat of dataService.categories(); track cat.id) { <option [ngValue]="cat.id">{{cat.name}}</option> }
+              </select>
+            </div>
+          </div>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Preço Base (R$)</label><input type="number" [(ngModel)]="product.basePrice" name="basePrice" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+            <div><label>Custo (R$)</label><input type="number" [(ngModel)]="product.cost" name="cost" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+           </div>
+           <div>
+              <label class="block text-sm font-medium">Imagem do Produto</label>
+              <img [src]="product.imageUrl" class="w-24 h-24 rounded-md object-cover bg-slate-200 my-2">
+              <input type="file" accept="image/*" (change)="onProductImageChange($event)" class="text-sm">
+           </div>
+           <div>
+             <h4 class="font-semibold mt-4">Tamanhos Específicos (Opcional)</h4>
+                  <div class="space-y-2">
+                    @for(size of product.productSpecificSizes; track size.id; let i = $index) {
+                      <div class="grid grid-cols-12 gap-2 items-center">
+                        <div class="col-span-5"><label>Nome</label><input type="text" [(ngModel)]="size.name" [name]="'size_name_' + i" class="w-full p-1 border rounded bg-transparent"></div>
+                        <div class="col-span-3"><label>Preço</label><input type="number" [(ngModel)]="size.price" [name]="'size_price_' + i" class="w-full p-1 border rounded bg-transparent"></div>
+                        <div class="col-span-3"><label>Custo</label><input type="number" [(ngModel)]="size.cost" [name]="'size_cost_' + i" class="w-full p-1 border rounded bg-transparent"></div>
+                        <div class="col-span-1"><button type="button" (click)="product.productSpecificSizes.splice(i, 1)" class="text-red-500 mt-4">X</button></div>
+                      </div>
+                    }
+                  </div>
+                  <button type="button" (click)="product.productSpecificSizes.push({id: uuidv4(), name: '', price: 0, cost: 0})" class="text-blue-600 text-sm mt-2">+ Adicionar Tamanho</button>
+           </div>
+           <div>
+             <h4 class="font-semibold mt-4">Grupos de Adicionais</h4>
+             <div class="h-40 border rounded p-2 mt-1 overflow-y-auto">
+                @for(group of dataService.modifierCategories(); track group.id) {
+                  <label class="flex items-center gap-2 p-1"><input type="checkbox" [checked]="product.modifierCategoryIds.includes(group.id)" (change)="toggleModifierCategoryForProduct(group.id, $event)" class="form-checkbox"> {{group.name}}</label>
+                }
+             </div>
+           </div>
+       </div>
+       <div class="flex justify-end gap-4 p-6 border-t border-[var(--border-color)] mt-auto"><button type="button" (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button><button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Salvar</button></div>
+    </form>
+  </div>
+}
+
+<!-- User Modal -->
+@if(activeModal() === 'user' && editingUser(); as user) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <form (ngSubmit)="saveItem('user')" class="bg-[var(--bg-card)] rounded-lg shadow-xl w-full max-w-lg" (click)="$event.stopPropagation()">
+       <h3 class="text-xl font-bold p-6 border-b border-[var(--border-color)]">{{ user.id.startsWith('new') ? 'Novo' : 'Editar' }} Funcionário</h3>
+       <div class="p-6 overflow-y-auto space-y-4 max-h-[70vh]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label>Nome</label><input type="text" [(ngModel)]="user.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+            <div><label>PIN (4 dígitos)</label><input type="text" [(ngModel)]="user.pin" name="pin" required maxlength="4" class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-2">Permissões de Acesso</h4>
+            <div class="p-4 border rounded-md bg-[var(--bg-page)] space-y-3">
+              <label class="flex items-center gap-2 cursor-pointer font-bold"><input type="checkbox" [checked]="user.isAdmin" (change)="toggleUserIsAdmin($event)" class="form-checkbox h-5 w-5 rounded text-[var(--color-primary)]"> ADMINISTRADOR (Acesso Total)</label>
+               @if(!user.isAdmin) {
+               <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-[var(--border-color)]">
+                @for(perm of sidebarNavItems(); track perm.id) {
+                   <label class="flex items-center gap-2"><input type="checkbox" [checked]="user.permissions?.includes(perm.id)" (change)="togglePermission(perm.id, $event)" class="form-checkbox"> {{perm.label}}</label>
+                }
+                 <label class="flex items-center gap-2"><input type="checkbox" [checked]="user.permissions?.includes('access_pos')" (change)="togglePermission('access_pos', $event)" class="form-checkbox"> PDV Local</label>
+                 <label class="flex items-center gap-2"><input type="checkbox" [checked]="user.permissions?.includes('access_kitchen')" (change)="togglePermission('access_kitchen', $event)" class="form-checkbox"> Cozinha</label>
+               </div>
+               }
+            </div>
+          </div>
+       </div>
+       <div class="flex justify-end gap-4 p-6 border-t border-[var(--border-color)] mt-auto"><button type="button" (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button><button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Salvar</button></div>
+    </form>
+  </div>
+}
+
+<!-- Cash Register Modals -->
+@if(activeModal() === 'open_cash_register') {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <form (ngSubmit)="handleOpenCashRegister()" class="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl w-full max-w-sm" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold mb-4">Abrir Caixa</h3>
+      <p class="text-[var(--text-secondary)] mb-4">Digite o valor inicial do caixa (troco).</p>
+      <div><label>Valor Inicial (R$)</label><input type="number" [ngModel]="startingCash()" (ngModelChange)="startingCash.set($event)" name="startingCash" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+      <div class="flex justify-end gap-4 mt-6"><button type="button" (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button><button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Abrir Caixa</button></div>
+    </form>
+  </div>
+}
+@if(activeModal() === 'close_cash_register') {
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+  <div class="bg-[var(--bg-card)] rounded-lg p-8 shadow-xl text-center" (click)="$event.stopPropagation()">
+    <h3 class="text-xl font-bold mb-4">Fechar o Caixa</h3>
+    <p class="text-[var(--text-secondary)] mb-6">Tem certeza que deseja fechar o caixa do dia?</p>
+    <div class="flex justify-center gap-4">
+      <button (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Cancelar</button>
+      <button (click)="handleCloseCashRegister()" class="bg-red-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-600">Sim, Fechar</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- View Order Modal -->
+@if(activeModal() === 'view_order' && viewingOrder(); as order) {
+  <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <div class="bg-[var(--bg-card)] rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
+      <h3 class="text-xl font-bold p-6 border-b border-[var(--border-color)]">Detalhes do Pedido #{{order.id.slice(-6)}}</h3>
+      <div class="p-6 overflow-y-auto font-mono text-sm">
+          <p><strong>Cliente:</strong> {{order.customerName}}</p>
+          <p><strong>Endereço:</strong> {{order.neighborhood}}, {{order.customerAddress}}</p>
+          <p class="border-t border-b border-dashed my-3 py-1">ITENS</p>
+           @for (item of order.items; track item.id) {
+              <div class="pt-1 mb-2">
+                  <div class="grid grid-cols-3 font-semibold">
+                  <p class="col-span-2">{{ item.product.name }} ({{ item.size.name }})</p>
+                  </div>
+                  @if (item.toppings.length > 0) {
+                    <p class="text-xs pl-2 text-[var(--text-secondary)]">Adicionais: {{ getToppingNames(item.toppings) }}</p>
+                  }
+                  @if (item.notes) { <p class="text-xs italic pl-4">Obs: {{ item.notes }}</p> }
+              </div>
+          }
+          <div class="mt-4 pt-4 border-t-2 border-dashed">
+            <p class="font-bold text-base">TOTAL: R$ {{ order.total.toFixed(2) }}</p>
+          </div>
+      </div>
+      <div class="flex justify-end gap-4 p-4 border-t border-[var(--border-color)] mt-auto">
+        <button (click)="closeModal()" class="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300">Fechar</button>
+      </div>
+    </div>
+  </div>
+}

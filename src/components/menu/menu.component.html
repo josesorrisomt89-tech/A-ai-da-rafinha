@@ -1,0 +1,108 @@
+<div class="relative min-h-full pb-24">
+  <!-- Header with integrated Logo and Name -->
+  <header class="relative">
+    <img [src]="dataService.settings().bannerUrl" alt="Banner da Loja" class="w-full h-48 object-cover">
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+    <div class="absolute -bottom-10 left-0 right-0">
+        <div class="container mx-auto px-4 flex items-end gap-4">
+            <img [src]="dataService.settings().logoUrl" alt="Logo da Loja" class="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-[var(--bg-card)] object-cover">
+            <div class="pb-2">
+              <h1 class="text-3xl font-bold text-white drop-shadow-lg">{{ dataService.settings().storeName }}</h1>
+              <div class="flex items-center gap-2 text-sm font-semibold text-white bg-black/30 px-2 py-1 rounded-full w-fit mt-1">
+                <span class="w-2 h-2 rounded-full" [class.bg-green-400]="isStoreOpen()" [class.bg-red-400]="!isStoreOpen()"></span>
+                {{ isStoreOpen() ? 'Aberto' : 'Fechado' }}
+              </div>
+            </div>
+        </div>
+    </div>
+  </header>
+  
+  <div class="container mx-auto px-4 pt-16">
+    <!-- Store Info Card - redesigned -->
+    <div class="bg-[var(--bg-card)] rounded-xl shadow-lg p-4 mb-6">
+      @if(dataService.settings().greetingMessage) {
+        <p class="text-center text-md text-[var(--text-secondary)] mb-3">{{ dataService.settings().greetingMessage }}</p>
+      }
+      
+      <div class="flex justify-between items-center text-sm text-[var(--text-secondary)] border-t border-[var(--border-color)] pt-3">
+        <p><strong>Entrega:</strong> {{ dataService.settings().minDeliveryTime }} - {{ dataService.settings().maxDeliveryTime }} min</p>
+        <p><strong>Pedido Mínimo:</strong> R$ {{ dataService.settings().minOrderValue.toFixed(2) }}</p>
+      </div>
+    </div>
+    
+    <!-- Free Delivery Banner -->
+    @if(dataService.settings().freeDeliveryThreshold > 0) {
+      <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg shadow-sm">
+        <p class="font-bold">Entrega grátis em pedidos acima de R$ {{ dataService.settings().freeDeliveryThreshold.toFixed(2) }}!</p>
+      </div>
+    }
+
+    <!-- Promo Banners -->
+    @if(dataService.settings().promoBanners.length > 0) {
+      <div class="relative w-full h-48 mb-6 rounded-lg overflow-hidden shadow-lg">
+        @for(banner of dataService.settings().promoBanners; track banner; let i = $index) {
+          <img [src]="banner" class="absolute w-full h-full object-cover transition-opacity duration-1000" [class.opacity-100]="i === currentBannerIndex()" [class.opacity-0]="i !== currentBannerIndex()">
+        }
+      </div>
+    }
+
+    <!-- Category Tabs -->
+    <div class="sticky top-0 bg-[var(--bg-page)] z-10 py-2 mb-6">
+      <div class="flex space-x-2 overflow-x-auto pb-2 -mx-4 px-4">
+        @for (category of dataService.categories(); track category.id) {
+          <button (click)="selectedCategoryId.set(category.id)" class="px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors" [class.bg-[var(--color-primary)]]="selectedCategoryId() === category.id" [class.text-[var(--color-text-on-primary)]]="selectedCategoryId() === category.id" [class.bg-[var(--bg-card)]]="selectedCategoryId() !== category.id" [class.text-[var(--text-primary)]]="selectedCategoryId() !== category.id" [class.shadow]="selectedCategoryId() !== category.id">
+            {{ category.name }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Product List -->
+    <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">{{ selectedCategoryName() }}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (product of filteredProducts(); track product.id) {
+        <div (click)="onProductClick(product)" class="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden cursor-pointer flex items-center gap-4 p-4 transform hover:scale-105 transition-transform duration-300">
+          <div class="flex-grow">
+            <h3 class="font-bold text-lg text-[var(--text-primary)]">{{ product.name }}</h3>
+            @if(product.description) {
+              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.description, 60) }}</p>
+            }
+            <p class="font-semibold text-[var(--color-primary)] mt-2">A partir de R$ {{ product.basePrice.toFixed(2) }}</p>
+          </div>
+          @if(product.imageUrl) {
+            <img [src]="product.imageUrl" [alt]="product.name" class="w-24 h-24 object-cover rounded-md flex-shrink-0">
+          }
+        </div>
+      } @empty {
+          <p class="text-[var(--text-secondary)] md:col-span-2 lg:col-span-3 text-center py-8">Nenhum produto nesta categoria.</p>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation / Cart Button -->
+<div class="fixed bottom-0 left-0 right-0 h-20 bg-[var(--bg-card)]/80 backdrop-blur-sm border-t border-[var(--border-color)] shadow-lg z-20 flex items-center justify-around">
+    <button class="flex flex-col items-center justify-center text-[var(--color-primary)] font-semibold">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="text-xs mt-1">Cardápio</span>
+    </button>
+     <button (click)="changeView('track')" class="flex flex-col items-center justify-center text-[var(--text-secondary)] hover:text-[var(--color-primary)]">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" x2="23" y1="1" y2="23"/></svg>
+        <span class="text-xs mt-1">Acompanhar</span>
+    </button>
+    <button (click)="changeView('pos')" class="flex flex-col items-center justify-center text-[var(--text-secondary)] hover:text-[var(--color-primary)]">
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10,17 15,12 10,7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+        <span class="text-xs mt-1">Entrar</span>
+    </button>
+</div>
+
+@if(dataService.cart().length > 0) {
+  <button (click)="isCartVisible.set(true)" class="fixed bottom-24 right-4 bg-[var(--color-accent)] text-white font-bold py-3 px-5 rounded-full shadow-lg flex items-center gap-3 animate-bounce">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+    <span>Ver Carrinho ({{dataService.cart().length}})</span>
+  </button>
+}
+
+@if (isCartVisible()) {
+  <Cart (closeCart)="isCartVisible.set(false)" (checkout)="onCheckoutClick()"></Cart>
+}

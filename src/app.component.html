@@ -1,0 +1,41 @@
+<div class="flex flex-col h-screen bg-[var(--bg-page)]">
+  @if (currentView() !== 'landing' && currentView() !== 'menu' && currentView() !== 'track') {
+    <Header [currentView]="currentView()" (viewChange)="handleViewChange($event)"></Header>
+  }
+
+  <main class="flex-grow overflow-y-auto">
+    @switch (currentView()) {
+      @case ('landing') {
+        <Landing (enterMenu)="enterMenu()"></Landing>
+      }
+      @case ('menu') {
+        <Menu (productSelect)="openProductModal($event)" (showCheckout)="openCheckoutModal()" (viewChange)="handleViewChange($event)"></Menu>
+      }
+       @case ('track') {
+        <OrderTracking (viewChange)="handleViewChange($event)"></OrderTracking>
+      }
+      @case ('pos') {
+        <Pos (productSelect)="openProductModal($event)"></Pos>
+      }
+      @case ('admin') {
+        <Admin></Admin>
+      }
+      @case ('kitchen') {
+        <Kitchen></Kitchen>
+      }
+    }
+  </main>
+</div>
+
+<!-- Modals -->
+@if (isProductModalOpen() && selectedProduct()) {
+  <ProductModal [product]="selectedProduct()!" (closeModal)="closeProductModal()" (addToCart)="closeProductModal()"></ProductModal>
+}
+
+@if (isCheckoutModalOpen()) {
+  <CheckoutModal (close)="closeCheckoutModal()"></CheckoutModal>
+}
+
+@if (isPosLoginModalOpen()) {
+  <PosLoginModal (close)="closePosLoginModal()" (loginSuccess)="handleLoginSuccess()" (navigateTo)="navigateTo($event)"></PosLoginModal>
+}

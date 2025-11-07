@@ -1,0 +1,282 @@
+<div class="h-full">
+@switch (view()) {
+  @case ('building') {
+    <div class="grid grid-cols-12 gap-4 h-full">
+      <!-- Product Selection -->
+      <div class="col-span-8 p-4 overflow-y-auto h-full">
+        <div class="space-y-8">
+          @for (category of dataService.categories(); track category.id) {
+            <section>
+              <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">{{ category.name }}</h2>
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                @for (product of productsByCategory(category.id); track product.id) {
+                  <div (click)="selectProduct(product)" class="bg-[var(--bg-card)] rounded-lg shadow cursor-pointer text-center p-2 transform hover:scale-105 transition-transform">
+                    <img [src]="product.imageUrl" [alt]="product.name" class="w-full h-24 object-cover rounded-md mx-auto">
+                    <p class="mt-2 font-semibold text-sm text-[var(--text-primary)]">{{ product.name }}</p>
+                    <p class="text-xs text-[var(--text-secondary)]">R$ {{ product.basePrice.toFixed(2) }}</p>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </div>
+
+      <!-- Cart -->
+      <div class="col-span-4 bg-[var(--bg-card)] p-4 h-full flex flex-col shadow-lg">
+        <h3 class="text-2xl font-bold text-center border-b border-[var(--border-color)] pb-3 text-[var(--text-primary)]">Pedido Atual</h3>
+        <div class="flex-grow overflow-y-auto py-4 space-y-2">
+          @for(item of dataService.cart(); track item.id) {
+            <div class="text-sm p-2 rounded bg-[var(--bg-page)] flex justify-between items-start">
+              <div>
+                <p class="font-bold text-[var(--text-primary)]">{{ item.product.name }} ({{ item.size.name }})</p>
+                @if(item.toppings.length > 0) { <p class="text-xs text-[var(--text-secondary)]">{{ getToppingNames(item.toppings) }}</p> }
+              </div>
+              <div class="text-right flex-shrink-0">
+                <p class="font-semibold text-[var(--text-primary)]">R$ {{ item.totalPrice.toFixed(2) }}</p>
+                <button (click)="dataService.removeFromCart(item.id)" class="text-red-500 text-xs hover:underline">Remover</button>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-center text-[var(--text-secondary)] pt-10">Clique nos produtos para adicionar</p>
+          }
+        </div>
+        <div class="border-t border-[var(--border-color)] pt-4">
+          <div class="flex justify-between items-center text-xl font-bold text-[var(--text-primary)]">
+            <span>TOTAL</span>
+            <span>R$ {{ dataService.cartTotal().toFixed(2) }}</span>
+          </div>
+          <button (click)="goToDetails()" [disabled]="dataService.cart().length === 0" class="w-full mt-4 bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-4 rounded-lg hover:bg-[var(--color-primary-hover)] disabled:bg-slate-400">
+            CONTINUAR
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @case ('details') {
+    <div class="max-w-2xl mx-auto py-8">
+      <div class="bg-[var(--bg-card)] p-8 rounded-xl shadow-lg">
+         <button (click)="view.set('building')" class="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-4">&larr; Voltar para o pedido</button>
+         <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 border-b border-[var(--border-color)] pb-4">Detalhes da Venda</h2>
+         
+         <div class="mb-6">
+            <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-4">Tipo de Venda</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <button (click)="isDelivery.set(false)" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="!isDelivery()" [class.border-[var(--color-primary)]]="!isDelivery()" [class.border-[var(--border-color)]]="isDelivery()">Venda Balcão</button>
+              <button (click)="isDelivery.set(true)" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="isDelivery()" [class.border-[var(--color-primary)]]="isDelivery()" [class.border-[var(--border-color)]]="!isDelivery()">Delivery</button>
+            </div>
+         </div>
+
+         @if(isDelivery()) {
+          <div class="space-y-4 p-4 border border-[var(--border-color)] rounded-lg">
+             <h3 class="text-xl font-semibold text-[var(--text-primary)]">Informações de Entrega</h3>
+             <div><label class="block text-sm font-medium">Nome do Cliente</label><input type="text" [(ngModel)]="customerName" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+             <div><label class="block text-sm font-medium">Telefone</label><input type="text" [(ngModel)]="customerPhone" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+             <div><label class="block text-sm font-medium">Bairro</label>
+              <select [(ngModel)]="selectedNeighborhoodId" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]">
+                <option [ngValue]="null" disabled>Selecione o bairro</option>
+                @for(zone of dataService.deliveryZones(); track zone.id) {
+                  <option [ngValue]="zone.id">{{zone.neighborhood}} (+ R$ {{zone.fee.toFixed(2)}})</option>
+                }
+              </select>
+             </div>
+             <div><label class="block text-sm font-medium">Endereço (Rua, Número, Comp.)</label><input type="text" [(ngModel)]="customerAddress" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+              <div class="flex items-center justify-between pt-2">
+                 <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" [(ngModel)]="isFreeDelivery" class="form-checkbox h-5 w-5 rounded text-[var(--color-primary)]"> Entrega Grátis</label>
+                 <div class="text-right"><p class="text-sm">Taxa de Entrega</p><p class="font-bold">R$ {{ deliveryFee().toFixed(2) }}</p></div>
+              </div>
+          </div>
+         }
+
+         <div class="mt-8 border-t border-[var(--border-color)] pt-4">
+            <div class="flex justify-between items-center text-xl font-bold">
+              <span>TOTAL</span>
+              <span>R$ {{ orderTotal().toFixed(2) }}</span>
+            </div>
+            <button (click)="goToPayment()" [disabled]="!isDeliveryFormValid()" class="w-full mt-4 bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-4 rounded-lg hover:bg-[var(--color-primary-hover)] disabled:bg-slate-400">
+              IR PARA PAGAMENTO
+            </button>
+          </div>
+      </div>
+    </div>
+  }
+
+  @case ('payment') {
+     <div class="max-w-2xl mx-auto py-8">
+       <div class="bg-[var(--bg-card)] p-8 rounded-xl shadow-lg">
+          <button (click)="view.set('details')" class="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-4">&larr; Voltar para os detalhes</button>
+          <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 border-b border-[var(--border-color)] pb-4">Finalizar Pagamento</h2>
+          
+          <div class="mb-8">
+            <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-4">Resumo do Pedido</h3>
+            <div class="flex justify-between"><span>Subtotal</span><span>R$ {{ (orderTotal() - fiadoSurcharge()).toFixed(2) }}</span></div>
+            @if(fiadoSurcharge() > 0) {
+              <div class="flex justify-between text-red-600"><span>Acréscimo Fiado ({{dataService.settings().fiadoSurchargePercentage}}%)</span><span>+ R$ {{ fiadoSurcharge().toFixed(2) }}</span></div>
+            }
+            <div class="flex justify-between items-center mt-4 pt-4 border-t-2 border-dashed border-[var(--border-color)]">
+              <span class="text-xl font-bold text-[var(--text-primary)]">TOTAL</span>
+              <span class="text-2xl font-bold text-[var(--color-primary)]">R$ {{ orderTotal().toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-4">Forma de Pagamento</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <button (click)="selectPaymentMethod('dinheiro')" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="selectedPaymentMethod() === 'dinheiro'" [class.border-[var(--color-primary)]]="selectedPaymentMethod() === 'dinheiro'" [class.border-[var(--border-color)]]="selectedPaymentMethod() !== 'dinheiro'">Dinheiro</button>
+              <button (click)="selectPaymentMethod('credito')" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="selectedPaymentMethod() === 'credito'" [class.border-[var(--color-primary)]]="selectedPaymentMethod() === 'credito'" [class.border-[var(--border-color)]]="selectedPaymentMethod() !== 'credito'">Crédito</button>
+              <button (click)="selectPaymentMethod('debito')" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="selectedPaymentMethod() === 'debito'" [class.border-[var(--color-primary)]]="selectedPaymentMethod() === 'debito'" [class.border-[var(--border-color)]]="selectedPaymentMethod() !== 'debito'">Débito</button>
+              <button (click)="selectPaymentMethod('pix')" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all" [class.bg-purple-50]="selectedPaymentMethod() === 'pix'" [class.border-[var(--color-primary)]]="selectedPaymentMethod() === 'pix'" [class.border-[var(--border-color)]]="selectedPaymentMethod() !== 'pix'">Pix</button>
+              <button (click)="selectPaymentMethod('fiado')" class="p-4 border rounded-lg flex flex-col items-center justify-center transition-all relative" [class.bg-purple-50]="selectedPaymentMethod() === 'fiado'" [class.border-[var(--color-primary)]]="selectedPaymentMethod() === 'fiado'" [class.border-[var(--border-color)]]="selectedPaymentMethod() !== 'fiado'">Fiado</button>
+            </div>
+          </div>
+
+          @if (selectedPaymentMethod() === 'dinheiro') {
+            <div class="mt-6 bg-[var(--bg-page)] p-4 rounded-lg">
+              <label for="cashPaid" class="block text-sm font-medium text-[var(--text-primary)]">Valor pago</label>
+              <input type="number" id="cashPaid" [ngModel]="cashPaid()" (ngModelChange)="cashPaid.set($event)" placeholder="0.00" class="mt-1 block w-full px-3 py-2 bg-transparent border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+              @if (change() > 0) {
+                <div class="mt-4 text-lg font-semibold text-green-600">
+                  Troco: R$ {{ change().toFixed(2) }}
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedPaymentMethod() === 'fiado') {
+            <div class="mt-6 bg-[var(--bg-page)] p-4 rounded-lg space-y-3">
+              <h4 class="text-lg font-semibold text-[var(--text-primary)]">Dados para o Fiado</h4>
+              @if(!isDelivery()) {
+                <div><label class="block text-sm font-medium">Nome do Cliente</label><input type="text" [(ngModel)]="customerName" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                <div><label class="block text-sm font-medium">Telefone</label><input type="text" [(ngModel)]="customerPhone" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+                <div><label class="block text-sm font-medium">Endereço</label><input type="text" [(ngModel)]="customerAddress" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+              }
+              <div><label class="block text-sm font-medium">CPF do Cliente</label><input type="text" [(ngModel)]="customerCpf" placeholder="000.000.000-00" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+              <div><label class="block text-sm font-medium">Data de Pagamento</label><input type="date" [(ngModel)]="paymentDueDate" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+            </div>
+          }
+          
+          <div class="mt-8 text-center">
+            <button (click)="finishOrder()" class="w-full md:w-auto bg-green-500 text-white font-bold py-4 px-12 rounded-lg shadow-md hover:bg-green-600 transition-all duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed" [disabled]="!isPaymentReady()">
+              Finalizar Pedido
+            </button>
+          </div>
+        </div>
+     </div>
+  }
+  
+  @case ('receipt') {
+    <div class="bg-[var(--bg-page)] p-8 flex justify-center print:bg-white print:p-0">
+      <div class="w-full max-w-md bg-white p-6 shadow-xl font-mono text-sm print:text-black print:bg-white" id="receipt">
+        <div class="text-center">
+          <img [src]="dataService.settings().logoUrl" alt="Logo" class="w-20 h-20 mx-auto mb-2">
+          <h2 class="text-xl font-bold">{{ dataService.settings().storeName }}</h2>
+          <p>{{ dataService.settings().address }}</p>
+          <p>{{ dataService.settings().document }}</p>
+          <p class="border-t border-b border-dashed my-2 py-1">CUPOM NÃO FISCAL</p>
+        </div>
+
+        @if(finishedOrder(); as order) {
+            @if(order.deliveryFee > 0 || order.neighborhood || order.paymentMethod === 'fiado') {
+              <div class="my-4 text-xs">
+                <p class="font-bold">DADOS DO CLIENTE:</p>
+                <p>{{ order.customerName }} - {{ order.customerPhone }}</p>
+                @if(order.customerCpf) { <p>CPF: {{ order.customerCpf }}</p> }
+                <p>{{ order.neighborhood }}, {{ order.customerAddress }}</p>
+              </div>
+            }
+            <div class="space-y-2 mt-4">
+              @for (item of order.items; track item.id) {
+                <div class="pt-1">
+                  <!-- Product + Size and its combined price -->
+                  <div class="grid grid-cols-3 font-semibold">
+                    <p class="col-span-2">{{ item.product.name }} ({{ item.size.name }})</p>
+                    <p class="text-right">R$ {{ itemBasePrice(item).toFixed(2) }}</p>
+                  </div>
+
+                  <!-- Grouped Toppings -->
+                  @for(group of groupToppingsByCategory(item.toppings); track group.categoryName) {
+                    <div class="pl-2">
+                      <p class="text-xs italic text-slate-600 mt-1">{{ group.categoryName }}</p>
+                      @for(toppingItem of group.toppings; track toppingItem.topping.id) {
+                        <div class="grid grid-cols-3 text-xs pl-2 text-slate-700">
+                          <p class="col-span-2">{{ toppingItem.topping.name }}</p>
+                          <p class="text-right">+ R$ {{ toppingItem.topping.price.toFixed(2) }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (item.notes) {
+                    <p class="text-xs italic text-slate-500 pl-2 mt-1">Obs: {{ item.notes }}</p>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="mt-4 pt-4 border-t-2 border-dashed">
+              @if(order.deliveryFee > 0 || order.surcharge) {
+                 <div class="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>R$ {{ (order.total - order.deliveryFee - (order.surcharge ?? 0)).toFixed(2) }}</span>
+                 </div>
+                 @if(order.deliveryFee > 0) {
+                    <div class="flex justify-between text-sm">
+                        <span>Taxa de Entrega</span>
+                        <span>R$ {{ order.deliveryFee.toFixed(2) }}</span>
+                    </div>
+                 }
+                  @if(order.surcharge) {
+                    <div class="flex justify-between text-sm">
+                        <span>Acréscimo</span>
+                        <span>R$ {{ order.surcharge.toFixed(2) }}</span>
+                    </div>
+                 }
+              }
+              <div class="flex justify-between font-bold text-base mt-1">
+                <span>TOTAL</span>
+                <span>R$ {{ order.total.toFixed(2) }}</span>
+              </div>
+              @if (order.paymentMethod === 'dinheiro') {
+                <div class="flex justify-between text-sm mt-1">
+                  <span>Pago em Dinheiro</span>
+                  <span>R$ {{ cashPaid().toFixed(2) }}</span>
+                </div>
+                @if (change() > 0) {
+                  <div class="flex justify-between text-sm font-semibold mt-1">
+                    <span>TROCO</span>
+                    <span>R$ {{ change().toFixed(2) }}</span>
+                  </div>
+                }
+              } @else if(order.paymentMethod) {
+                <div class="flex justify-between text-sm mt-1">
+                  <span>Pagamento</span>
+                  <span class="capitalize">{{ order.paymentMethod }}</span>
+                </div>
+                @if(order.paymentDueDate) {
+                  <div class="flex justify-between text-sm font-bold text-red-600 mt-1">
+                    <span>PAGAR ATÉ</span>
+                    <span>{{ order.paymentDueDate | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                }
+              }
+            </div>
+            
+            @if(order.paymentMethod === 'fiado') {
+              <div class="mt-8 pt-4 border-t border-dashed text-center text-xs">
+                  <p class="mt-8">_________________________________________</p>
+                  <p>Assinatura do Cliente</p>
+                  <p class="mt-2">Concordo com o valor total de R$ {{ order.total.toFixed(2) }} e com a data de pagamento em {{ order.paymentDueDate | date:'dd/MM/yyyy' }}.</p>
+              </div>
+            }
+        }
+         <p class="text-center text-xs mt-6">Obrigado pela preferência!</p>
+      </div>
+    </div>
+    <div class="fixed bottom-4 right-4 flex gap-4 print:hidden">
+      <button (click)="startNewOrder()" class="bg-slate-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-slate-700">Novo Pedido</button>
+      <button (click)="printReceipt()" class="bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-[var(--color-primary-hover)]">Imprimir</button>
+    </div>
+  }
+}
+</div>

@@ -1,0 +1,145 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center p-4" (click)="closeModal()">
+  <div class="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+    @switch (checkoutStep()) {
+      @case ('form') {
+        <!-- Header -->
+        <div class="flex justify-between items-center p-6 border-b border-[var(--border-color)]">
+          <h2 class="text-2xl font-bold text-[var(--text-primary)]">Finalizar Pedido</h2>
+          <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Seu Nome</label>
+            <input type="text" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" placeholder="Digite seu nome completo" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
+          </div>
+           <div>
+            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Seu WhatsApp</label>
+            <input type="tel" [ngModel]="customerPhone()" (ngModelChange)="customerPhone.set($event)" placeholder="(99) 99999-9999" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Bairro</label>
+            <select [ngModel]="selectedNeighborhoodId()" (ngModelChange)="selectedNeighborhoodId.set($event)" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)]">
+              <option [ngValue]="null" disabled>Selecione seu bairro</option>
+              @for(zone of dataService.deliveryZones(); track zone.id) {
+                <option [ngValue]="zone.id">{{zone.neighborhood}} (+ R$ {{zone.fee.toFixed(2)}})</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Rua, Número e Complemento</label>
+            <input type="text" [ngModel]="customerStreetAddress()" (ngModelChange)="customerStreetAddress.set($event)" placeholder="Ex: Rua das Flores, 123, Apto 4" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
+          </div>
+          <div>
+            <h3 class="text-md font-semibold text-[var(--text-primary)] mb-2">Forma de Pagamento</h3>
+            <div class="space-y-2">
+               <label class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" [class.border-[var(--color-primary)]]="paymentMethod() === 'pix'" [class.bg-purple-50]="paymentMethod() === 'pix'" [class.border-[var(--border-color)]]="paymentMethod() !== 'pix'">
+                  <input type="radio" name="payment" value="pix" [checked]="paymentMethod() === 'pix'" (change)="paymentMethod.set('pix')" class="form-radio h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                  <span class="ml-3 text-[var(--text-primary)] font-medium">Pix</span>
+               </label>
+               <label class="flex flex-col items-start p-3 border rounded-lg cursor-pointer transition-all" [class.border-[var(--color-primary)]]="paymentMethod() === 'dinheiro'" [class.bg-purple-50]="paymentMethod() === 'dinheiro'" [class.border-[var(--border-color)]]="paymentMethod() !== 'dinheiro'">
+                  <div class="flex items-center w-full">
+                    <input type="radio" name="payment" value="dinheiro" [checked]="paymentMethod() === 'dinheiro'" (change)="paymentMethod.set('dinheiro')" class="form-radio h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                    <span class="ml-3 text-[var(--text-primary)] font-medium">Dinheiro na Entrega</span>
+                  </div>
+                  @if (paymentMethod() === 'dinheiro') {
+                    <div class="mt-3 w-full pl-8">
+                      <label class="block text-xs font-medium text-[var(--text-secondary)] mb-1">Precisa de troco? (Opcional)</label>
+                      <input type="number" [ngModel]="cashForChange()" (ngModelChange)="cashForChange.set($event)" placeholder="Ex: 50.00" class="w-full p-2 text-sm border border-[var(--border-color)] rounded-md focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent">
+                    </div>
+                  }
+               </label>
+               <label class="flex items-center p-3 border rounded-lg cursor-pointer transition-all" [class.border-[var(--color-primary)]]="paymentMethod() === 'cartao'" [class.bg-purple-50]="paymentMethod() === 'cartao'" [class.border-[var(--border-color)]]="paymentMethod() !== 'cartao'">
+                  <input type="radio" name="payment" value="cartao" [checked]="paymentMethod() === 'cartao'" (change)="paymentMethod.set('cartao')" class="form-radio h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                  <span class="ml-3 text-[var(--text-primary)] font-medium">Cartão na Entrega</span>
+               </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="p-6 border-t border-[var(--border-color)] mt-auto bg-[var(--bg-page)] rounded-b-2xl space-y-3">
+           <div class="flex justify-between text-sm text-[var(--text-secondary)]"><span>Subtotal</span><span>R$ {{ dataService.cartTotal().toFixed(2) }}</span></div>
+           <div class="flex justify-between text-sm text-[var(--text-secondary)]"><span>Taxa de Entrega</span><span>R$ {{ deliveryFee().toFixed(2) }}</span></div>
+           <div class="flex justify-between items-center text-xl font-bold text-[var(--text-primary)]"><span>Total</span><span>R$ {{ totalWithDelivery().toFixed(2) }}</span></div>
+           <button (click)="submitOrder()" class="w-full bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-3 px-8 rounded-lg shadow-md hover:bg-[var(--color-primary-hover)] transition-all transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed" [disabled]="!isFormValid()">
+             Confirmar Pedido
+           </button>
+        </div>
+      }
+
+      @case ('receipt') {
+        @if (finalOrder(); as order) {
+        <div class="flex-grow flex flex-col">
+            <div class="p-6 text-center border-b border-[var(--border-color)]">
+                <div class="flex justify-center items-center h-12 w-12 bg-green-100 rounded-full mx-auto mb-3">
+                <svg class="h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h2 class="text-xl font-bold text-[var(--text-primary)]">Pedido Recebido!</h2>
+                <p class="text-sm text-[var(--text-secondary)] mt-1">Confira os detalhes e envie via WhatsApp.</p>
+            </div>
+
+            <div class="p-6 overflow-y-auto font-mono text-sm text-[var(--text-primary)]">
+                <p class="font-bold">Cliente: <span class="font-normal">{{order.customerName}}</span></p>
+                <p class="font-bold">Endereço: <span class="font-normal">{{order.neighborhood}}, {{order.customerAddress}}</span></p>
+                <p class="font-bold">Pedido: <span class="font-normal">{{order.id}}</span></p>
+                <p class="border-t border-b border-dashed my-3 py-1">DETALHES DO PEDIDO</p>
+                
+                 @for (item of order.items; track item.id) {
+                    <div class="pt-1 mb-2">
+                        <div class="grid grid-cols-3 font-semibold">
+                        <p class="col-span-2">{{ item.product.name }} ({{ item.size.name }})</p>
+                        <p class="text-right">R$ {{ itemBasePrice(item).toFixed(2) }}</p>
+                        </div>
+
+                        @for(group of groupToppingsByCategory(item.toppings); track group.categoryName) {
+                        <div class="pl-2">
+                            <p class="text-xs italic text-[var(--text-secondary)] mt-1">{{ group.categoryName }}</p>
+                            @for(toppingItem of group.toppings; track toppingItem.topping.id) {
+                            <div class="grid grid-cols-3 text-xs pl-2">
+                                <p class="col-span-2">{{ toppingItem.topping.name }}</p>
+                                <p class="text-right">+ R$ {{ toppingItem.topping.price.toFixed(2) }}</p>
+                            </div>
+                            }
+                        </div>
+                        }
+
+                        @if (item.notes) {
+                        <p class="text-xs italic text-[var(--text-secondary)] pl-2 mt-1">Obs: {{ item.notes }}</p>
+                        }
+                    </div>
+                }
+
+                <div class="mt-4 pt-4 border-t-2 border-dashed">
+                    <div class="flex justify-between"><p>Subtotal</p><p>R$ {{ (order.total - order.deliveryFee).toFixed(2) }}</p></div>
+                    <div class="flex justify-between"><p>Taxa de Entrega</p><p>R$ {{ order.deliveryFee.toFixed(2) }}</p></div>
+                    <div class="flex justify-between font-bold text-base mt-1"><p>TOTAL</p><p>R$ {{ order.total.toFixed(2) }}</p></div>
+                    <div class="flex justify-between mt-2"><p>Pagamento</p><p class="capitalize">{{ paymentMethod() === 'cartao' ? 'Cartão' : paymentMethod() }}</p></div>
+                    @if(paymentMethod() === 'dinheiro' && cashForChange()) {
+                        <div class="flex justify-between text-green-600"><p>Troco para</p><p>R$ {{ cashForChange()?.toFixed(2) }}</p></div>
+                         @if (changeDue() > 0) {
+                            <div class="flex justify-between font-semibold text-green-600"><p>TROCO</p><p>R$ {{ changeDue().toFixed(2) }}</p></div>
+                         }
+                    }
+                </div>
+            </div>
+
+            <div class="p-4 mt-auto border-t border-[var(--border-color)] bg-[var(--bg-page)] rounded-b-2xl space-y-3">
+                <a [href]="whatsappLink()" target="_blank" class="w-full flex items-center justify-center gap-3 bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                    Enviar Pedido para o WhatsApp
+                </a>
+
+                <button (click)="closeModal()" class="w-full text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium">
+                Fechar
+                </button>
+            </div>
+        </div>
+        }
+      }
+    }
+  </div>
+</div>

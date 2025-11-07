@@ -1,0 +1,78 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center p-4" (click)="close()">
+  <div class="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex justify-between items-center p-6 border-b border-[var(--border-color)]">
+      <h2 class="text-2xl font-bold text-[var(--text-primary)]">Monte seu {{ product().name }}</h2>
+      <button (click)="close()" class="text-slate-400 hover:text-slate-600">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 overflow-y-auto space-y-6">
+      <!-- Tamanhos -->
+      @if (sizes().length > 0) {
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Escolha o tamanho</h3>
+          <div class="space-y-2">
+            @for (size of sizes(); track size.id) {
+              <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-all" [class.border-[var(--color-primary)]]="selectedSize()?.id === size.id" [class.bg-[var(--color-primary-light-tint)]]="selectedSize()?.id === size.id" [class.border-[var(--border-color)]]="selectedSize()?.id !== size.id">
+                <input type="radio" name="size" [value]="size.id" [checked]="selectedSize()?.id === size.id" (change)="onSizeChange(size.id)" class="form-radio h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                <span class="ml-4 text-[var(--text-primary)] font-medium">{{ size.name }}</span>
+                <span class="ml-auto text-[var(--text-secondary)]">+ R$ {{ size.price.toFixed(2) }}</span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+      
+      <!-- Adicionais -->
+      @for (category of toppingsByCategory(); track category.id) {
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
+            {{ category.name }}
+            @if(category.isRequired) {
+              <span class="text-xs font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Obrigatório</span>
+            }
+             @if(category.maxSelection === 1 && !category.isRequired) {
+              <span class="text-sm font-normal text-[var(--text-secondary)]">(Escolha 1)</span>
+             } @else if (category.maxSelection) {
+                <span class="text-sm font-normal text-[var(--text-secondary)]">(Escolha até {{category.maxSelection}})</span>
+             }
+          </h3>
+          <div class="space-y-2">
+            @for (topping of category.toppings; track topping.id) {
+              <label class="flex items-center p-4 border border-[var(--border-color)] rounded-lg cursor-pointer transition-all has-[:checked]:border-[var(--color-primary)] has-[:checked]:bg-[var(--color-primary-light-tint)]">
+                 @if (category.maxSelection === 1) {
+                    <input type="radio" [name]="category.id" [value]="topping.id" [checked]="isToppingSelected(topping.id)" (change)="handleToppingChange(topping, category, $event)" class="form-radio h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                 } @else {
+                    <input type="checkbox" [name]="topping.id" [checked]="isToppingSelected(topping.id)" (change)="handleToppingChange(topping, category, $event)" class="form-checkbox h-5 w-5 text-[var(--color-primary)] focus:ring-[var(--color-primary)] rounded">
+                 }
+                <span class="ml-4 text-[var(--text-primary)] font-medium">{{ topping.name }}</span>
+                <span class="ml-auto text-[var(--text-secondary)]">+ R$ {{ topping.price.toFixed(2) }}</span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Observações -->
+      <div>
+        <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3">Observações</h3>
+        <textarea [ngModel]="notes()" (ngModelChange)="notes.set($event)" rows="3" placeholder="Ex: sem granola, com mais leite em pó..." class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"></textarea>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 border-t border-[var(--border-color)] mt-auto bg-[var(--bg-page)] rounded-b-2xl">
+      <div class="flex justify-between items-center">
+        <span class="text-2xl font-bold text-[var(--text-primary)]">Total: R$ {{ itemTotal().toFixed(2) }}</span>
+        <button (click)="handleAddToCart()" class="bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-3 px-8 rounded-lg shadow-md hover:bg-[var(--color-primary-hover)] transition-all duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed" [disabled]="!isSelectionValid()">
+          Adicionar ao Carrinho
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
