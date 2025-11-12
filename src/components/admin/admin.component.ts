@@ -120,12 +120,12 @@ export class AdminComponent {
   
   // Generic open/save/delete for simple models
   startNew(type: 'category' | 'modifier_group' | 'delivery_zone' | 'user' | 'expense' | 'payable') {
-    if (type === 'category') { this.editingCategory.set({ id: uuidv4(), name: '' }); }
-    if (type === 'modifier_group') { this.editingModifierGroup.set({ id: uuidv4(), name: '', isRequired: false, maxSelection: 1 }); }
-    if (type === 'delivery_zone') { this.editingDeliveryZone.set({ id: uuidv4(), neighborhood: '', fee: 0 }); }
-    if (type === 'user') { this.editingUser.set({ id: uuidv4(), name: '', pin: '', isAdmin: false, permissions: [] }); }
-    if (type === 'expense') { this.editingExpense.set({ id: uuidv4(), description: '', amount: 0, date: new Date().toISOString().split('T')[0] }); }
-    if (type === 'payable') { this.editingPayable.set({ id: uuidv4(), description: '', amount: 0, dueDate: new Date().toISOString().split('T')[0], isPaid: false }); }
+    if (type === 'category') { this.editingCategory.set({ id: 'new_' + uuidv4(), name: '' }); }
+    if (type === 'modifier_group') { this.editingModifierGroup.set({ id: 'new_' + uuidv4(), name: '', isRequired: false, maxSelection: 1 }); }
+    if (type === 'delivery_zone') { this.editingDeliveryZone.set({ id: 'new_' + uuidv4(), neighborhood: '', fee: 0 }); }
+    if (type === 'user') { this.editingUser.set({ id: 'new_' + uuidv4(), name: '', pin: '', isAdmin: false, permissions: [] }); }
+    if (type === 'expense') { this.editingExpense.set({ id: 'new_' + uuidv4(), description: '', amount: 0, date: new Date().toISOString().split('T')[0] }); }
+    if (type === 'payable') { this.editingPayable.set({ id: 'new_' + uuidv4(), description: '', amount: 0, dueDate: new Date().toISOString().split('T')[0], isPaid: false }); }
     this.openModal(type);
   }
 
@@ -151,7 +151,7 @@ export class AdminComponent {
   
   // Special cases: Product, Modifier
   startNewProduct() {
-    this.editingProduct.set({ id: uuidv4(), name: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], productSpecificSizes: [] });
+    this.editingProduct.set({ id: 'new_' + uuidv4(), name: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], productSpecificSizes: [] });
     this.openModal('product');
   }
 
@@ -169,7 +169,7 @@ export class AdminComponent {
 
   startNewModifier(group: ModifierCategory) {
     this.newModifierParentGroup = group;
-    this.editingModifier.set({ id: uuidv4(), name: '', price: 0, cost: 0, modifierCategoryId: group.id });
+    this.editingModifier.set({ id: 'new_' + uuidv4(), name: '', price: 0, cost: 0, modifierCategoryId: group.id });
     this.openModal('modifier');
   }
 
@@ -252,6 +252,26 @@ export class AdminComponent {
   handleCloseCashRegister() {
      this.dataService.closeCashRegister();
      this.closeModal();
+  }
+
+  // --- DATA EXPORT ---
+  exportData() {
+    try {
+        const dataStr = this.dataService.exportDataForUpdate();
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dados_cardapio.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        alert('Arquivo de dados exportado com sucesso! Envie "dados_cardapio.json" para o desenvolvedor.');
+    } catch (e) {
+        console.error("Erro ao exportar dados:", e);
+        alert('Ocorreu um erro ao tentar exportar os dados.');
+    }
   }
 
   // --- HELPERS ---
