@@ -2,111 +2,17 @@ import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Product, Category, Modifier, ModifierCategory, CartItem, Order, AppSettings, DeliveryZone, Expense, AccountPayable, User, CashRegisterSession, OrderStatus, PaymentStatus } from '../models/product.model';
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from './notification.service';
+import { MENU_DATA } from '../data/menu-data';
 
-// FIX: Explicitly type MOCK_DATA to prevent type inference issues, especially with the User's permissions array.
-const MOCK_DATA: {
-  settings: AppSettings;
-  categories: Category[];
-  sizes: Modifier[];
-  modifierCategories: ModifierCategory[];
-  toppings: Modifier[];
-  products: Product[];
-  users: User[];
-  deliveryZones: DeliveryZone[];
-  orders: Order[];
-} = {
-  settings: {
-    storeName: "Açaí da Rafinha",
-    document: "12.345.678/0001-99",
-    address: "Rua das Flores, 123 - Centro",
-    phone: "11 1234-5678",
-    whatsappNumber: "5511999998888",
-    instagramUrl: "https://instagram.com/acai.da.rafinha",
-    facebookUrl: "https://facebook.com/acai.da.rafinha",
-    logoUrl: "https://i.imgur.com/U2uO2jb.png", // Sample logo
-    bannerUrl: "https://i.imgur.com/cLVmD3O.jpeg", // Sample banner
-    promoBanners: [
-      "https://i.imgur.com/gK2xApS.jpeg",
-      "https://i.imgur.com/k2gYjNE.jpeg"
-    ],
-    minDeliveryTime: 30,
-    maxDeliveryTime: 50,
-    minOrderValue: 15.00,
-    freeDeliveryThreshold: 70.00,
-    greetingMessage: "Seja bem-vindo(a)! Escolha seu açaí e aproveite.",
-    isTemporarilyClosed: false,
-    temporaryClosureMessage: "Voltamos em breve!",
-    openingHours: [
-      { day: 'Domingo', isOpen: true, open: '14:00', close: '22:00' },
-      { day: 'Segunda', isOpen: false, open: '18:00', close: '23:00' },
-      { day: 'Terça', isOpen: true, open: '18:00', close: '23:00' },
-      { day: 'Quarta', isOpen: true, open: '18:00', close: '23:00' },
-      { day: 'Quinta', isOpen: true, open: '18:00', close: '23:00' },
-      { day: 'Sexta', isOpen: true, open: '18:00', close: '00:00' },
-      { day: 'Sábado', isOpen: true, open: '14:00', close: '00:00' },
-    ],
-    fiadoSurchargePercentage: 5, // 5% surcharge for credit sales
-    primaryColor: '#6a0dad', // A nice purple
-    primaryColorHover: '#530a8a',
-    primaryColorLightTint: '#6a0dad1a',
-    accentColor: '#ff69b4', // Hot pink accent
-    textColorOnPrimary: '#ffffff',
-    backgroundColorPage: '#f3e5f5', // Light purple background
-    backgroundColorCard: '#ffffff',
-    textColorPrimary: '#333333',
-    textColorSecondary: '#666666',
-    borderColor: '#e0e0e0',
-  },
-  categories: [
-    { id: 'acai', name: 'Açaí' },
-    { id: 'sorvetes', name: 'Sorvetes' },
-    { id: 'bebidas', name: 'Bebidas' },
-  ],
-  sizes: [ // Global sizes for açaí
-    { id: 'size_300', name: '300ml', price: 12.00, cost: 4.00 },
-    { id: 'size_500', name: '500ml', price: 16.00, cost: 6.00 },
-    { id: 'size_700', name: '700ml', price: 20.00, cost: 8.00 },
-  ],
-  modifierCategories: [
-    { id: 'frutas', name: 'Frutas', isRequired: false, maxSelection: 5 },
-    { id: 'coberturas', name: 'Coberturas', isRequired: true, maxSelection: 1 },
-    { id: 'graos', name: 'Grãos e Cereais', isRequired: false, maxSelection: 5 },
-    { id: 'doces', name: 'Doces', isRequired: false, maxSelection: 3 },
-  ],
-  toppings: [
-    // Frutas
-    { id: 'fruta_banana', modifierCategoryId: 'frutas', name: 'Banana', price: 2.00, cost: 0.50 },
-    { id: 'fruta_morango', modifierCategoryId: 'frutas', name: 'Morango', price: 2.50, cost: 0.80 },
-    { id: 'fruta_kiwi', modifierCategoryId: 'frutas', name: 'Kiwi', price: 2.50, cost: 0.70 },
-    // Coberturas
-    { id: 'cob_leite_cond', modifierCategoryId: 'coberturas', name: 'Leite Condensado', price: 1.50, cost: 0.40 },
-    { id: 'cob_chocolate', modifierCategoryId: 'coberturas', name: 'Cobertura de Chocolate', price: 1.50, cost: 0.40 },
-    { id: 'cob_morango', modifierCategoryId: 'coberturas', name: 'Cobertura de Morango', price: 1.50, cost: 0.40 },
-    // Grãos
-    { id: 'grao_granola', modifierCategoryId: 'graos', name: 'Granola', price: 1.00, cost: 0.30 },
-    { id: 'grao_leite_po', modifierCategoryId: 'graos', name: 'Leite em Pó', price: 2.00, cost: 0.60 },
-    // Doces
-    { id: 'doce_confete', modifierCategoryId: 'doces', name: 'Confete', price: 1.50, cost: 0.50 },
-    { id: 'doce_bis', modifierCategoryId: 'doces', name: 'Bis', price: 2.00, cost: 0.70 },
-  ],
-  products: [
-    { id: 'acai_tradicional', name: 'Açaí Tradicional', description: 'O clássico açaí batido com banana.', imageUrl: 'https://i.imgur.com/uFw24a5.jpeg', basePrice: 0, cost: 0, categoryId: 'acai', productSpecificSizes: [], modifierCategoryIds: ['frutas', 'coberturas', 'graos', 'doces'] },
-    { id: 'sorvete_creme', name: 'Sorvete de Creme', description: 'Sorvete cremoso sabor baunilha.', imageUrl: 'https://i.imgur.com/Yw1j8p3.jpeg', basePrice: 8, cost: 2.5, categoryId: 'sorvetes', productSpecificSizes: [], modifierCategoryIds: [] },
-    { id: 'coca_lata', name: 'Coca-Cola Lata', description: '350ml', imageUrl: 'https://i.imgur.com/GzSp5S0.jpeg', basePrice: 5.00, cost: 2.00, categoryId: 'bebidas', productSpecificSizes: [], modifierCategoryIds: [] },
-    { id: 'agua_sem_gas', name: 'Água sem Gás', description: '500ml', imageUrl: 'https://i.imgur.com/o5Qk9gT.jpeg', basePrice: 3.00, cost: 1.00, categoryId: 'bebidas', productSpecificSizes: [], modifierCategoryIds: [] },
-  ],
-  users: [
-      { id: 'user_admin', name: 'Admin', pin: '1234', isAdmin: true, permissions: [] },
-      { id: 'user_caixa', name: 'Caixa', pin: '1111', isAdmin: false, permissions: ['access_pos'] },
-      { id: 'user_cozinha', name: 'Cozinha', pin: '2222', isAdmin: false, permissions: ['access_kitchen'] }
-  ],
-  deliveryZones: [
-      { id: 'zona_1', neighborhood: 'Centro', fee: 5.00 },
-      { id: 'zona_2', neighborhood: 'Vila Nova', fee: 7.00 },
-  ],
-  orders: []
+const EMPTY_SETTINGS: AppSettings = {
+    storeName: "Carregando...",
+    document: "", address: "", phone: "", whatsappNumber: "", instagramUrl: "", facebookUrl: "", logoUrl: "", bannerUrl: "",
+    promoBanners: [], minDeliveryTime: 0, maxDeliveryTime: 0, minOrderValue: 0, freeDeliveryThreshold: 0,
+    greetingMessage: "", isTemporarilyClosed: false, temporaryClosureMessage: "", openingHours: [], fiadoSurchargePercentage: 0,
+    primaryColor: '#6a0dad', primaryColorHover: '#530a8a', primaryColorLightTint: '#6a0dad1a',
+    accentColor: '#ff69b4', textColorOnPrimary: '#ffffff', backgroundColorPage: '#f3e5f5',
+    backgroundColorCard: '#ffffff', textColorPrimary: '#333333', textColorSecondary: '#666666', borderColor: '#e0e0e0',
 };
-
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -118,7 +24,7 @@ export class DataService {
   sizes = signal<Modifier[]>([]); // Global sizes for açaí
   toppings = signal<Modifier[]>([]);
   modifierCategories = signal<ModifierCategory[]>([]);
-  settings = signal<AppSettings>(MOCK_DATA.settings);
+  settings = signal<AppSettings>(EMPTY_SETTINGS);
   deliveryZones = signal<DeliveryZone[]>([]);
   users = signal<User[]>([]);
   
@@ -135,7 +41,7 @@ export class DataService {
   constructor() {
     this.loadInitialData();
     // Persist ALL data to localStorage. This makes the admin panel stateful
-    // for the admin user. Customers will still get the MOCK_DATA on first load.
+    // for the admin user. Customers will get updated data via the versioning system.
     effect(() => {
       this.saveToLocalStorage('products', this.products());
       this.saveToLocalStorage('categories', this.categories());
@@ -176,24 +82,59 @@ export class DataService {
     }
   }
 
-  private loadInitialData() {
-    // Try to load from localStorage first. If it doesn't exist, fall back to MOCK_DATA.
-    // This makes changes in the admin panel persistent for the user making them.
-    // New customers will get the MOCK_DATA version until the code is updated.
-    this.products.set(this.loadFromLocalStorage('products', MOCK_DATA.products));
-    this.categories.set(this.loadFromLocalStorage('categories', MOCK_DATA.categories));
-    this.sizes.set(this.loadFromLocalStorage('sizes', MOCK_DATA.sizes));
-    this.toppings.set(this.loadFromLocalStorage('toppings', MOCK_DATA.toppings));
-    this.modifierCategories.set(this.loadFromLocalStorage('modifierCategories', MOCK_DATA.modifierCategories));
-    this.settings.set(this.loadFromLocalStorage('settings', MOCK_DATA.settings));
-    this.deliveryZones.set(this.loadFromLocalStorage('deliveryZones', MOCK_DATA.deliveryZones));
-    this.users.set(this.loadFromLocalStorage('users', MOCK_DATA.users));
+  private loadInitialData(): void {
+    try {
+        const fileData: any = MENU_DATA; // Use imported data directly
+        const remoteVersion = fileData.version || 0;
+        const localVersion = this.loadFromLocalStorage('version', -1);
+        const localSettings = this.loadFromLocalStorage('settings', null);
 
-    // Load transactional data
-    this.orders.set(this.loadFromLocalStorage('orders', []));
-    this.expenses.set(this.loadFromLocalStorage('expenses', []));
-    this.accountsPayable.set(this.loadFromLocalStorage('accountsPayable', []));
-    this.cashRegisterHistory.set(this.loadFromLocalStorage('cashRegisterHistory', []));
+        // If remote is newer, or if there are no local settings (first visit for anyone), load from file.
+        if (remoteVersion > localVersion || !localSettings) {
+          console.log(`New data version detected (${remoteVersion}). Updating from source file.`);
+          this.products.set(fileData.products);
+          this.categories.set(fileData.categories);
+          this.sizes.set(fileData.sizes);
+          this.toppings.set(fileData.toppings);
+          this.modifierCategories.set(fileData.modifierCategories);
+          this.settings.set(fileData.settings);
+          this.deliveryZones.set(fileData.deliveryZones);
+          this.users.set(fileData.users);
+          this.saveToLocalStorage('version', remoteVersion); // Update local version tracker
+        } else {
+          console.log('Local data is current. Loading from localStorage.');
+          // Local version is up-to-date or newer (e.g., admin has unsaved changes), so load from localStorage.
+          this.products.set(this.loadFromLocalStorage('products', fileData.products));
+          this.categories.set(this.loadFromLocalStorage('categories', fileData.categories));
+          this.sizes.set(this.loadFromLocalStorage('sizes', fileData.sizes));
+          this.toppings.set(this.loadFromLocalStorage('toppings', fileData.toppings));
+          this.modifierCategories.set(this.loadFromLocalStorage('modifierCategories', fileData.modifierCategories));
+          this.settings.set(localSettings); // Already loaded
+          this.deliveryZones.set(this.loadFromLocalStorage('deliveryZones', fileData.deliveryZones));
+          this.users.set(this.loadFromLocalStorage('users', fileData.users));
+        }
+
+        // Transactional data is always loaded from localStorage, regardless of version.
+        this.orders.set(this.loadFromLocalStorage('orders', []));
+        this.expenses.set(this.loadFromLocalStorage('expenses', []));
+        this.accountsPayable.set(this.loadFromLocalStorage('accountsPayable', []));
+        this.cashRegisterHistory.set(this.loadFromLocalStorage('cashRegisterHistory', []));
+      } catch (err) {
+        console.error("Fatal: Could not process 'menu-data.ts'. Attempting to load from localStorage as a fallback.", err);
+        // Fallback logic remains, just in case the data file gets corrupted.
+        this.products.set(this.loadFromLocalStorage('products', []));
+        this.categories.set(this.loadFromLocalStorage('categories', []));
+        this.sizes.set(this.loadFromLocalStorage('sizes', []));
+        this.toppings.set(this.loadFromLocalStorage('toppings', []));
+        this.modifierCategories.set(this.loadFromLocalStorage('modifierCategories', []));
+        this.settings.set(this.loadFromLocalStorage('settings', EMPTY_SETTINGS));
+        this.deliveryZones.set(this.loadFromLocalStorage('deliveryZones', []));
+        this.users.set(this.loadFromLocalStorage('users', []));
+        this.orders.set(this.loadFromLocalStorage('orders', []));
+        this.expenses.set(this.loadFromLocalStorage('expenses', []));
+        this.accountsPayable.set(this.loadFromLocalStorage('accountsPayable', []));
+        this.cashRegisterHistory.set(this.loadFromLocalStorage('cashRegisterHistory', []));
+      }
   }
 
   // --- CART ---
@@ -346,6 +287,7 @@ export class DataService {
   // --- DATA IMPORT/EXPORT ---
   exportDataForUpdate(): string {
     const dataToExport = {
+      version: Date.now(), // Add a new timestamp for this export
       settings: this.settings(),
       categories: this.categories(),
       sizes: this.sizes(),
@@ -380,7 +322,10 @@ export class DataService {
       this.modifierCategories.set(data.modifierCategories);
       this.toppings.set(data.toppings);
       
-      // The effect() in constructor will handle saving to localStorage
+      if (data.version) {
+        this.saveToLocalStorage('version', data.version);
+      }
+      
       return true;
     } catch (e) {
       console.error("Erro ao importar dados:", e);

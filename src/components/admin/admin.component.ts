@@ -262,12 +262,12 @@ export class AdminComponent {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'dados_cardapio.json';
+        a.download = 'menu.json';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        alert('Arquivo de dados exportado com sucesso! Siga as instruções para atualizar o cardápio público.');
+        alert('Arquivo "menu.json" exportado com sucesso! Siga as instruções para atualizar o cardápio público.');
     } catch (e) {
         console.error("Erro ao exportar dados:", e);
         alert('Ocorreu um erro ao tentar exportar os dados.');
@@ -287,7 +287,7 @@ export class AdminComponent {
         alert('Dados importados com sucesso! A página será recarregada para aplicar as alterações.');
         window.location.reload();
       } else {
-        alert('Erro ao importar o arquivo. Verifique se o arquivo "dados_cardapio.json" é válido e não foi corrompido.');
+        alert('Erro ao importar o arquivo. Verifique se o arquivo "menu.json" é válido e não foi corrompido.');
       }
     };
     reader.onerror = () => {

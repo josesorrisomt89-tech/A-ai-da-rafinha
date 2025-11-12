@@ -1,0 +1,89 @@
+export const MENU_DATA = {
+  "version": 1721077200000,
+  "settings": {
+    "storeName": "Açaí da Rafinha",
+    "document": "12.345.678/0001-99",
+    "address": "Rua das Flores, 123 - Centro",
+    "phone": "11 1234-5678",
+    "whatsappNumber": "5511999998888",
+    "instagramUrl": "https://instagram.com/acai.da.rafinha",
+    "facebookUrl": "https://facebook.com/acai.da.rafinha",
+    "logoUrl": "https://i.imgur.com/U2uO2jb.png",
+    "bannerUrl": "https://i.imgur.com/cLVmD3O.jpeg",
+    "promoBanners": [
+      "https://i.imgur.com/gK2xApS.jpeg",
+      "https://i.imgur.com/k2gYjNE.jpeg"
+    ],
+    "minDeliveryTime": 30,
+    "maxDeliveryTime": 50,
+    "minOrderValue": 15,
+    "freeDeliveryThreshold": 70,
+    "greetingMessage": "Seja bem-vindo(a)! Escolha seu açaí e aproveite.",
+    "isTemporarilyClosed": false,
+    "temporaryClosureMessage": "Voltamos em breve!",
+    "openingHours": [
+      { "day": "Domingo", "isOpen": true, "open": "14:00", "close": "22:00" },
+      { "day": "Segunda", "isOpen": false, "open": "18:00", "close": "23:00" },
+      { "day": "Terça", "isOpen": true, "open": "18:00", "close": "23:00" },
+      { "day": "Quarta", "isOpen": true, "open": "18:00", "close": "23:00" },
+      { "day": "Quinta", "isOpen": true, "open": "18:00", "close": "23:00" },
+      { "day": "Sexta", "isOpen": true, "open": "18:00", "close": "00:00" },
+      { "day": "Sábado", "isOpen": true, "open": "14:00", "close": "00:00" }
+    ],
+    "fiadoSurchargePercentage": 5,
+    "primaryColor": "#6a0dad",
+    "primaryColorHover": "#530a8a",
+    "primaryColorLightTint": "#6a0dad1a",
+    "accentColor": "#ff69b4",
+    "textColorOnPrimary": "#ffffff",
+    "backgroundColorPage": "#f3e5f5",
+    "backgroundColorCard": "#ffffff",
+    "textColorPrimary": "#333333",
+    "textColorSecondary": "#666666",
+    "borderColor": "#e0e0e0"
+  },
+  "categories": [
+    { "id": "acai", "name": "Açaí" },
+    { "id": "sorvetes", "name": "Sorvetes" },
+    { "id": "bebidas", "name": "Bebidas" }
+  ],
+  "sizes": [
+    { "id": "size_300", "name": "300ml", "price": 12, "cost": 4 },
+    { "id": "size_500", "name": "500ml", "price": 16, "cost": 6 },
+    { "id": "size_700", "name": "700ml", "price": 20, "cost": 8 }
+  ],
+  "modifierCategories": [
+    { "id": "frutas", "name": "Frutas", "isRequired": false, "maxSelection": 5 },
+    { "id": "coberturas", "name": "Coberturas", "isRequired": true, "maxSelection": 1 },
+    { "id": "graos", "name": "Grãos e Cereais", "isRequired": false, "maxSelection": 5 },
+    { "id": "doces", "name": "Doces", "isRequired": false, "maxSelection": 3 }
+  ],
+  "toppings": [
+    { "id": "fruta_banana", "modifierCategoryId": "frutas", "name": "Banana", "price": 2, "cost": 0.5 },
+    { "id": "fruta_morango", "modifierCategoryId": "frutas", "name": "Morango", "price": 2.5, "cost": 0.8 },
+    { "id": "fruta_kiwi", "modifierCategoryId": "frutas", "name": "Kiwi", "price": 2.5, "cost": 0.7 },
+    { "id": "cob_leite_cond", "modifierCategoryId": "coberturas", "name": "Leite Condensado", "price": 1.5, "cost": 0.4 },
+    { "id": "cob_chocolate", "modifierCategoryId": "coberturas", "name": "Cobertura de Chocolate", "price": 1.5, "cost": 0.4 },
+    { "id": "cob_morango", "modifierCategoryId": "coberturas", "name": "Cobertura de Morango", "price": 1.5, "cost": 0.4 },
+    { "id": "grao_granola", "modifierCategoryId": "graos", "name": "Granola", "price": 1, "cost": 0.3 },
+    { "id": "grao_leite_po", "modifierCategoryId": "graos", "name": "Leite em Pó", "price": 2, "cost": 0.6 },
+    { "id": "doce_confete", "modifierCategoryId": "doces", "name": "Confete", "price": 1.5, "cost": 0.5 },
+    { "id": "doce_bis", "modifierCategoryId": "doces", "name": "Bis", "price": 2, "cost": 0.7 }
+  ],
+  "products": [
+    { "id": "acai_tradicional", "name": "Açaí Tradicional", "description": "O clássico açaí batido com banana.", "imageUrl": "https://i.imgur.com/uFw24a5.jpeg", "basePrice": 0, "cost": 0, "categoryId": "acai", "productSpecificSizes": [], "modifierCategoryIds": ["frutas", "coberturas", "graos", "doces"] },
+    { "id": "sorvete_creme", "name": "Sorvete de Creme", "description": "Sorvete cremoso sabor baunilha.", "imageUrl": "https://i.imgur.com/Yw1j8p3.jpeg", "basePrice": 8, "cost": 2.5, "categoryId": "sorvetes", "productSpecificSizes": [], "modifierCategoryIds": [] },
+    { "id": "coca_lata", "name": "Coca-Cola Lata", "description": "350ml", "imageUrl": "https://i.imgur.com/GzSp5S0.jpeg", "basePrice": 5, "cost": 2, "categoryId": "bebidas", "productSpecificSizes": [], "modifierCategoryIds": [] },
+    { "id": "agua_sem_gas", "name": "Água sem Gás", "description": "500ml", "imageUrl": "https://i.imgur.com/o5Qk9gT.jpeg", "basePrice": 3, "cost": 1, "categoryId": "bebidas", "productSpecificSizes": [], "modifierCategoryIds": [] }
+  ],
+  "users": [
+    { "id": "user_admin", "name": "Admin", "pin": "1234", "isAdmin": true, "permissions": [] },
+    { "id": "user_caixa", "name": "Caixa", "pin": "1111", "isAdmin": false, "permissions": ["access_pos"] },
+    { "id": "user_cozinha", "name": "Cozinha", "pin": "2222", "isAdmin": false, "permissions": ["access_kitchen"] }
+  ],
+  "deliveryZones": [
+    { "id": "zona_1", "neighborhood": "Centro", "fee": 5 },
+    { "id": "zona_2", "neighborhood": "Vila Nova", "fee": 7 }
+  ],
+  "orders": []
+};
