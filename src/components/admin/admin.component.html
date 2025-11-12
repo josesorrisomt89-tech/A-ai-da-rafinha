@@ -368,15 +368,26 @@
                             </tr>
                           }</tbody></table>
                   </div>
-                  <div class="mt-8 pt-6 border-t border-dashed border-[var(--border-color)]">
-                    <h3 class="text-xl font-semibold">Exportar Dados do Cardápio</h3>
-                    <p class="text-[var(--text-secondary)] text-sm my-2">
-                        Após fazer todas as suas alterações de produtos, categorias, etc., use este botão para gerar um arquivo. 
-                        Envie este arquivo para o desenvolvedor para que ele possa atualizar o cardápio para todos os seus clientes.
-                    </p>
-                    <button type="button" (click)="exportData()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
-                        Exportar Dados para Atualização
-                    </button>
+                  <div class="mt-8 pt-6 border-t border-dashed border-[var(--border-color)] grid grid-cols-2 gap-8">
+                    <div>
+                      <h3 class="text-xl font-semibold">Exportar Dados do Cardápio</h3>
+                      <p class="text-[var(--text-secondary)] text-sm my-2">
+                          Use este botão para salvar um arquivo de backup com todas as suas alterações de produtos, categorias, etc.
+                      </p>
+                      <button type="button" (click)="exportData()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
+                          Exportar Dados para Atualização
+                      </button>
+                    </div>
+                     <div>
+                      <h3 class="text-xl font-semibold">Importar Dados do Cardápio</h3>
+                      <p class="text-[var(--text-secondary)] text-sm my-2">
+                          Carregue um arquivo `dados_cardapio.json` para restaurar suas configurações. Útil ao trocar de computador ou limpar dados do navegador.
+                      </p>
+                      <input type="file" #fileInput (change)="onFileSelected($event)" accept=".json" class="hidden">
+                      <button type="button" (click)="fileInput.click()" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">
+                          Escolher Arquivo e Importar
+                      </button>
+                    </div>
                   </div>
               }
               @case ('appearance') {

@@ -343,7 +343,7 @@ export class DataService {
     ));
   }
 
-  // --- DATA EXPORT ---
+  // --- DATA IMPORT/EXPORT ---
   exportDataForUpdate(): string {
     const dataToExport = {
       settings: this.settings(),
@@ -357,5 +357,34 @@ export class DataService {
       orders: [], // Intentionally not exporting transactional data like orders
     };
     return JSON.stringify(dataToExport, null, 2);
+  }
+
+  importData(jsonData: string): boolean {
+    try {
+      const data = JSON.parse(jsonData);
+      // Basic validation
+      if (
+        !data.settings || !data.categories || !data.products || 
+        !data.users || !data.deliveryZones || !data.sizes ||
+        !data.modifierCategories || !data.toppings
+      ) {
+        throw new Error("Arquivo JSON inválido ou faltando chaves essenciais.");
+      }
+      
+      this.settings.set(data.settings);
+      this.categories.set(data.categories);
+      this.products.set(data.products);
+      this.users.set(data.users);
+      this.deliveryZones.set(data.deliveryZones);
+      this.sizes.set(data.sizes);
+      this.modifierCategories.set(data.modifierCategories);
+      this.toppings.set(data.toppings);
+      
+      // The effect() in constructor will handle saving to localStorage
+      return true;
+    } catch (e) {
+      console.error("Erro ao importar dados:", e);
+      return false;
+    }
   }
 }

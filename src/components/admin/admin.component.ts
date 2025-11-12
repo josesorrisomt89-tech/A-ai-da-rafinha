@@ -254,7 +254,7 @@ export class AdminComponent {
      this.closeModal();
   }
 
-  // --- DATA EXPORT ---
+  // --- DATA IMPORT/EXPORT ---
   exportData() {
     try {
         const dataStr = this.dataService.exportDataForUpdate();
@@ -267,11 +267,34 @@ export class AdminComponent {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        alert('Arquivo de dados exportado com sucesso! Envie "dados_cardapio.json" para o desenvolvedor.');
+        alert('Arquivo de dados exportado com sucesso! Siga as instruções para atualizar o cardápio público.');
     } catch (e) {
         console.error("Erro ao exportar dados:", e);
         alert('Ocorreu um erro ao tentar exportar os dados.');
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
+    }
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      if (this.dataService.importData(text)) {
+        alert('Dados importados com sucesso! A página será recarregada para aplicar as alterações.');
+        window.location.reload();
+      } else {
+        alert('Erro ao importar o arquivo. Verifique se o arquivo "dados_cardapio.json" é válido e não foi corrompido.');
+      }
+    };
+    reader.onerror = () => {
+        alert('Não foi possível ler o arquivo selecionado.');
+    };
+    reader.readAsText(file);
+    input.value = ''; // Reset input to allow re-selection of the same file
   }
 
   // --- HELPERS ---
