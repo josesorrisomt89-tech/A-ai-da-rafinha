@@ -118,12 +118,14 @@ export class DataService {
   sizes = signal<Modifier[]>([]); // Global sizes for açaí
   toppings = signal<Modifier[]>([]);
   modifierCategories = signal<ModifierCategory[]>([]);
-  orders = signal<Order[]>([]);
   settings = signal<AppSettings>(MOCK_DATA.settings);
   deliveryZones = signal<DeliveryZone[]>([]);
+  users = signal<User[]>([]);
+  
+  // Local/Transactional data that remains in localStorage
+  orders = signal<Order[]>([]);
   expenses = signal<Expense[]>([]);
   accountsPayable = signal<AccountPayable[]>([]);
-  users = signal<User[]>([]);
   cashRegisterHistory = signal<CashRegisterSession[]>([]);
   
   // State Signals
@@ -132,18 +134,12 @@ export class DataService {
 
   constructor() {
     this.loadInitialData();
+    // Persist only transactional/session data to localStorage.
+    // Menu items (products, categories, etc.) are now loaded from MOCK_DATA above.
     effect(() => {
-      this.saveToLocalStorage('products', this.products());
-      this.saveToLocalStorage('categories', this.categories());
-      this.saveToLocalStorage('sizes', this.sizes());
-      this.saveToLocalStorage('toppings', this.toppings());
-      this.saveToLocalStorage('modifierCategories', this.modifierCategories());
       this.saveToLocalStorage('orders', this.orders());
-      this.saveToLocalStorage('settings', this.settings());
-      this.saveToLocalStorage('deliveryZones', this.deliveryZones());
       this.saveToLocalStorage('expenses', this.expenses());
       this.saveToLocalStorage('accountsPayable', this.accountsPayable());
-      this.saveToLocalStorage('users', this.users());
       this.saveToLocalStorage('cashRegisterHistory', this.cashRegisterHistory());
     });
   }
@@ -152,7 +148,7 @@ export class DataService {
   cartTotal = computed(() => this.cart().reduce((sum, item) => sum + item.totalPrice, 0));
   activeCashRegister = computed(() => this.cashRegisterHistory().find(r => r.status === 'open'));
 
-  // --- LOCAL STORAGE ---
+  // --- LOCAL STORAGE (Kept for transactional data) ---
   private saveToLocalStorage(key: string, data: any) {
     try {
       localStorage.setItem(`acai_app_${key}`, JSON.stringify(data));
@@ -172,17 +168,21 @@ export class DataService {
   }
 
   private loadInitialData() {
-    this.products.set(this.loadFromLocalStorage('products', MOCK_DATA.products));
-    this.categories.set(this.loadFromLocalStorage('categories', MOCK_DATA.categories));
-    this.sizes.set(this.loadFromLocalStorage('sizes', MOCK_DATA.sizes));
-    this.toppings.set(this.loadFromLocalStorage('toppings', MOCK_DATA.toppings));
-    this.modifierCategories.set(this.loadFromLocalStorage('modifierCategories', MOCK_DATA.modifierCategories));
+    // Load global/menu data directly from MOCK_DATA to ensure consistency for all users.
+    // To update the menu, you must edit the MOCK_DATA object in this file.
+    this.products.set(MOCK_DATA.products);
+    this.categories.set(MOCK_DATA.categories);
+    this.sizes.set(MOCK_DATA.sizes);
+    this.toppings.set(MOCK_DATA.toppings);
+    this.modifierCategories.set(MOCK_DATA.modifierCategories);
+    this.settings.set(MOCK_DATA.settings);
+    this.deliveryZones.set(MOCK_DATA.deliveryZones);
+    this.users.set(MOCK_DATA.users);
+
+    // Load local/transactional data from the browser's localStorage.
     this.orders.set(this.loadFromLocalStorage('orders', MOCK_DATA.orders));
-    this.settings.set(this.loadFromLocalStorage('settings', MOCK_DATA.settings));
-    this.deliveryZones.set(this.loadFromLocalStorage('deliveryZones', MOCK_DATA.deliveryZones));
     this.expenses.set(this.loadFromLocalStorage('expenses', []));
     this.accountsPayable.set(this.loadFromLocalStorage('accountsPayable', []));
-    this.users.set(this.loadFromLocalStorage('users', MOCK_DATA.users));
     this.cashRegisterHistory.set(this.loadFromLocalStorage('cashRegisterHistory', []));
   }
 
@@ -245,7 +245,7 @@ export class DataService {
     this.currentUser.set(null);
   }
 
-  // --- ADMIN - CRUD ---
+  // --- ADMIN - CRUD (Changes will be temporary, resetting on page load) ---
   private saveItem<T extends { id: string }>(signalUpdater: (fn: (value: T[]) => T[]) => void, items: T[], item: Partial<T>): void {
     const existingIndex = item.id ? items.findIndex(i => i.id === item.id) : -1;
     if (existingIndex > -1 && item.id && !item.id.startsWith('new_')) {
