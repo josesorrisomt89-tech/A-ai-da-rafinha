@@ -11,7 +11,7 @@ type PushFn = (ref: any, value: any) => Promise<any>;
 type QueryFn = (...args: any[]) => any;
 type OrderByChildFn = (path: string) => any;
 type StartAtFn = (value: any, key?: string) => any;
-type OnChildAddedFn = (query: any, callback: (snapshot: any) => void) => any;
+type OnChildAddedFn = (query: any, callback: (snapshot: any) => void) => () => void;
 type DataSnapshot = any; // We can't get the real type, so we use any.
 
 
@@ -21,6 +21,7 @@ export class OrderSyncService {
   private isListening = false;
   private firebaseReady: Promise<void>;
   private resolveFirebaseReady!: () => void;
+  private unsubscribeFromOrders: (() => void) | null = null;
 
   // Store imported functions to avoid re-importing
   private _initializeApp!: InitializeAppFn;
@@ -93,12 +94,21 @@ export class OrderSyncService {
     const ordersRef = this._ref(this.db, 'online-orders');
     const recentOrdersQuery = this._query(ordersRef, this._orderByChild('timestamp'), this._startAt(Date.now()));
     
-    this._onChildAdded(recentOrdersQuery, (snapshot: DataSnapshot) => {
+    this.unsubscribeFromOrders = this._onChildAdded(recentOrdersQuery, (snapshot: DataSnapshot) => {
       const newOrder = snapshot.val() as Order;
       if (newOrder) {
         console.log("Tempo real: novo pedido recebido do Firebase", newOrder);
         this.newOrdersSubject.next(newOrder);
       }
     });
+  }
+  
+  stopListeningForOrders(): void {
+    if (this.unsubscribeFromOrders) {
+      this.unsubscribeFromOrders();
+      this.unsubscribeFromOrders = null;
+      this.isListening = false;
+      console.log("Parou de escutar por novos pedidos online.");
+    }
   }
 }

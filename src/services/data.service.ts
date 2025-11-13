@@ -74,10 +74,14 @@ export class DataService {
       }
     });
 
-    // Start listening for orders when a user logs in
-    effect(() => {
+    // Start listening for orders when a user logs in, and stop when they log out.
+    effect((onCleanup) => {
       if (this.currentUser()) {
         this.orderSyncService.startListeningForOrders();
+        
+        onCleanup(() => {
+          this.orderSyncService.stopListeningForOrders();
+        });
       }
     });
   }
