@@ -16,13 +16,13 @@
     
     <div class="print:hidden border-b border-[var(--border-color)] mb-6"></div>
 
-    <div class="space-y-6">
+    <div class="space-y-6 prose max-w-none">
       <h2 class="text-2xl font-bold border-b pb-2">Tutorial: Como Atualizar o Cardápio Para Seus Clientes</h2>
       <p>O processo é simples e consiste em três etapas principais:</p>
-      <ol class="list-decimal list-inside space-y-1 text-base md:text-lg">
+      <ol class="list-decimal list-inside space-y-1 text-base">
           <li>Fazer suas alterações no painel de administração.</li>
           <li>Exportar um arquivo com essas novas informações.</li>
-          <li>Substituir o arquivo antigo no código do seu projeto e publicar.</li>
+          <li>Substituir o arquivo antigo no código do seu projeto (no GitHub) para publicar.</li>
       </ol>
 
       <!-- Step 1 -->
@@ -30,16 +30,9 @@
         <h3 class="text-xl font-semibold mb-2">Passo 1: Faça as Alterações no Painel Admin</h3>
         <p class="mb-2 text-[var(--text-secondary)]">Tudo começa no seu painel de gerenciamento. É aqui que você adiciona produtos, muda preços e ajusta as configurações.</p>
         <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
-          <li>Acesse o <strong>Painel Admin</strong> do seu sistema (clicando em "Entrar" na tela do cardápio e digitando seu PIN de administrador).</li>
-          <li>Navegue pelas seções que deseja alterar:
-            <ul class="list-disc list-inside pl-6 mt-1 space-y-1">
-              <li>Para adicionar ou editar açaís, sorvetes, bebidas, etc., vá para <strong>"Produtos"</strong>.</li>
-              <li>Para alterar preços ou nomes de adicionais, vá para <strong>"Adicionais"</strong>.</li>
-              <li>Para mudar as categorias (Açaí, Bebidas, etc.), vá para <strong>"Categorias"</strong>.</li>
-              <li>Para ajustar informações da loja, horários ou taxas de entrega, vá para <strong>"Configurações"</strong>.</li>
-            </ul>
-          </li>
-          <li>Faça todas as modificações que desejar. Elas são salvas automaticamente no armazenamento local do seu navegador.</li>
+          <li>Acesse o <strong>Painel Admin</strong> do seu sistema.</li>
+          <li>Navegue pelas seções que deseja alterar (Produtos, Adicionais, Categorias, Configurações).</li>
+          <li>Faça todas as modificações que desejar.</li>
         </ol>
       </div>
       
@@ -48,40 +41,113 @@
         <h3 class="text-xl font-semibold mb-2">Passo 2: Exporte o Arquivo de Dados Atualizado</h3>
         <p class="mb-2 text-[var(--text-secondary)]">Depois de fazer todas as alterações, você precisa gerar o arquivo que será usado para atualizar o cardápio público.</p>
         <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
-            <li>No menu lateral do Painel Admin, clique na seção <strong>"Configurações"</strong> (o ícone de engrenagem ⚙️).</li>
-            <li>Dentro da tela de "Configurações", clique na aba <strong>"Operacional"</strong>.</li>
-            <li>Na seção "Como Publicar Suas Alterações Para Clientes", você encontrará as instruções e um botão.</li>
+            <li>No menu do Painel Admin, clique em <strong>"Configurações"</strong> (⚙️) e depois na aba <strong>"Operacional"</strong>.</li>
             <li>Clique no botão azul <strong>"Exportar Dados para Publicação"</strong>.</li>
         </ol>
-        <p class="mt-3 text-sm italic text-[var(--text-secondary)]">Ao clicar, seu navegador fará o download de um arquivo chamado <code>menu-data.ts</code>. Este arquivo contém todo o seu cardápio e configurações atualizadas.</p>
+        <p class="mt-3 text-sm italic text-[var(--text-secondary)]">Seu navegador fará o download de um arquivo chamado <code>menu-data.ts</code>.</p>
       </div>
       
       <!-- Step 3 -->
       <div class="pt-4">
-        <h3 class="text-xl font-bold text-red-600 mb-2">Passo 3: Substitua o Arquivo Antigo no Projeto (Parte Crítica)</h3>
-        <p class="mb-2 text-[var(--text-secondary)]">Agora, você precisa pegar o arquivo que baixou e colocá-lo no lugar do arquivo antigo na estrutura de pastas do seu projeto. <strong>Esta é a parte mais importante.</strong></p>
-        <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
-            <li>Abra a pasta onde está o código do seu projeto.</li>
-            <li>Navegue até o seguinte caminho: <code>src/data/</code>.</li>
-            <li>Dentro da pasta <code>data</code>, você encontrará um arquivo já existente chamado <code>menu-data.ts</code>.</li>
-            <li><strong>Exclua ou apague</strong> este arquivo antigo.</li>
-            <li>Agora, pegue o novo arquivo <code>menu-data.ts</code> que você baixou no Passo 2 e <strong>mova-o ou copie-o</strong> para dentro desta mesma pasta <code>src/data/</code>.</li>
+        <h3 class="text-xl font-bold text-red-600 mb-2">Passo 3: Atualize o Arquivo no GitHub e Publique</h3>
+        <p class="mb-2 text-[var(--text-secondary)]">Agora vamos usar a interface do GitHub para substituir o arquivo antigo. <strong>Siga estes passos com atenção.</strong></p>
+        <ol class="list-decimal list-inside space-y-4 pl-4 text-[var(--text-secondary)]">
+            <li>
+                <strong>Acesse o repositório no GitHub:</strong>
+                <p>Abra a página do seu projeto no site do GitHub.</p>
+            </li>
+            <li>
+                <strong>Navegue até a pasta correta:</strong>
+                <p>Na lista de arquivos, clique primeiro na pasta <code>src</code> e depois na pasta <code>data</code>.</p>
+            </li>
+            <li>
+                <strong>Envie o novo arquivo:</strong>
+                <ul class="list-disc list-inside pl-6 mt-1 space-y-1">
+                  <li>No canto superior direito, clique em <strong>"Add file"</strong> e depois em <strong>"Upload files"</strong>.</li>
+                  <li>Arraste o arquivo <code>menu-data.ts</code> (que você baixou no Passo 2) e solte na área indicada na tela do GitHub.</li>
+                  <li>O GitHub irá reconhecer que você está substituindo um arquivo existente.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Confirme as alterações (Tela da sua foto):</strong>
+                <p class="mb-2">Após enviar o arquivo, o GitHub mostrará uma tela para confirmar. Preencha assim:</p>
+                <div class="p-4 border-l-4 border-slate-300 bg-slate-50 text-slate-700 my-2 space-y-2">
+                    <p><strong>Mensagem de confirmação:</strong> Digite um resumo, por exemplo: <code class="bg-slate-200 px-1 rounded">Atualiza cardápio</code>.</p>
+                    <p><strong>Descrição detalhada:</strong> Este campo é opcional, pode deixar em branco.</p>
+                    <p>Certifique-se que a primeira opção (<strong>"Comprometa-se diretamente com..."</strong>) está marcada.</p>
+                </div>
+                 <p>Finalmente, clique no botão verde <strong>"Confirmar alterações"</strong> (ou "Commit changes").</p>
+            </li>
         </ol>
-        <p class="mt-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-r-lg font-medium">
-          <strong>Resumindo:</strong> O arquivo <code>menu-data.ts</code> que você acabou de baixar deve substituir o que estava na pasta <code>src/data/</code>.
-        </p>
       </div>
 
       <!-- Step 4 -->
       <div class="pt-4">
-        <h3 class="text-xl font-semibold mb-2">Passo 4: Publique as Alterações na Vercel</h3>
-        <p class="mb-2 text-[var(--text-secondary)]">Com o arquivo novo no lugar, o último passo é publicar a nova versão do seu site para que as alterações fiquem online.</p>
+        <h3 class="text-xl font-semibold mb-2">Passo 4: Pronto! Aguarde a Publicação</h3>
+        <p class="mb-2 text-[var(--text-secondary)]">Após confirmar as alterações no GitHub, o processo é automático.</p>
+        <p class="mt-4 p-3 bg-green-100 border-l-4 border-green-500 text-green-800 rounded-r-lg font-medium">
+          A <strong>Vercel</strong> detectará a mudança e começará a publicar a nova versão do seu site. Em alguns minutos, seu cardápio estará atualizado para todos os clientes!
+        </p>
+      </div>
+
+      <div class="border-t border-[var(--border-color)] my-8"></div>
+
+      <!-- Firebase Setup -->
+      <div class="pt-4">
+        <h2 class="text-2xl font-bold border-b pb-2 text-blue-600">Opcional: Ativando Pedidos em Tempo Real</h2>
+        <p class="mb-4 text-[var(--text-secondary)]">Para que os pedidos cheguem automaticamente no seu painel, você precisa conectar o sistema a um serviço gratuito do Google chamado Firebase. Siga os passos abaixo uma única vez.</p>
+
+        <h3 class="text-xl font-semibold mb-2">1. Crie um Projeto no Firebase</h3>
         <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
-            <li>Salve todas as alterações nos arquivos do seu projeto.</li>
-            <li>Envie as suas alterações (faça o "commit" e "push" via Git) para o serviço onde seu site está hospedado (Vercel, GitHub, etc.).</li>
-            <li>O seu serviço de hospedagem irá detectar as novas alterações e automaticamente criar uma nova versão ("build" e "deploy") do seu site com o cardápio atualizado.</li>
+            <li>Acesse o site <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-500 hover:underline">Firebase Console</a> e faça login com sua conta Google.</li>
+            <li>Clique em <strong>"Criar um projeto"</strong> (ou "Add project").</li>
+            <li>Dê um nome ao seu projeto (ex: "Cardapio Acai da Rafinha") e aceite os termos. Desative o Google Analytics para este projeto se perguntado, não é necessário.</li>
+            <li>Aguarde a criação do projeto.</li>
         </ol>
-        <p class="mt-4 text-green-700 font-semibold">Após a publicação ser concluída, todos os clientes que acessarem seu site verão imediatamente as novas alterações, sem problemas de cache!</p>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">2. Crie o Banco de Dados em Tempo Real</h3>
+        <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
+            <li>No menu esquerdo do seu projeto, clique em <strong>"Build"</strong> > <strong>"Realtime Database"</strong>.</li>
+            <li>Clique no botão <strong>"Criar banco de dados"</strong>.</li>
+            <li>Escolha a localização do servidor (pode deixar o padrão) e clique em "Próxima".</li>
+            <li>Selecione a opção <strong>"Iniciar em modo de teste"</strong>. Isso permitirá que o app se comunique com o banco de dados. Clique em "Ativar".</li>
+        </ol>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">3. Copie as Chaves de Configuração</h3>
+        <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
+            <li>No canto superior esquerdo, clique no ícone de engrenagem (⚙️) e selecione <strong>"Configurações do projeto"</strong>.</li>
+            <li>Na aba "Geral", role para baixo até a seção "Seus apps".</li>
+            <li>Clique no ícone que parece com <strong><code>&lt;/&gt;</code></strong> (para Web).</li>
+            <li>Dê um apelido para o app (ex: "Cardapio Web") e clique em <strong>"Registrar app"</strong>.</li>
+            <li>Na tela seguinte, você verá a seção "Instalar SDK". Marque a opção <strong>"Usar um &lt;script&gt; tag"</strong>.</li>
+            <li>Você verá um bloco de código. Copie apenas a parte que se parece com isto:
+              <div class="mt-2 p-2 bg-slate-100 text-slate-600 text-xs rounded-md font-mono whitespace-pre-wrap">
+const firebaseConfig = {{ '{' }}
+  apiKey: "AIza...",
+  authDomain: "seu-projeto.firebaseapp.com",
+  databaseURL: "https://seu-projeto.firebaseio.com",
+  projectId: "seu-projeto",
+  storageBucket: "seu-projeto.appspot.com",
+  messagingSenderId: "123...",
+  appId: "1:123:web:..."
+{{ '}' }};
+              </div>
+            </li>
+        </ol>
+
+        <h3 class="text-xl font-semibold mt-6 mb-2">4. Cole as Chaves no Código do Projeto</h3>
+        <ol class="list-decimal list-inside space-y-2 pl-4 text-[var(--text-secondary)]">
+            <li>No GitHub, navegue até a pasta <code>src/config/</code>.</li>
+            <li>Clique no arquivo <code>firebase.config.ts</code> para abri-lo.</li>
+            <li>Clique no ícone de lápis (✏️) para editar o arquivo.</li>
+            <li><strong>Substitua todo o conteúdo do arquivo</strong> pelas informações que você copiou do Firebase (incluindo `apiKey`, `authDomain`, etc.).</li>
+            <li>Role até o final e clique em <strong>"Confirmar alterações"</strong> (ou "Commit changes").</li>
+        </ol>
+
+        <p class="mt-6 p-3 bg-green-100 border-l-4 border-green-500 text-green-800 rounded-r-lg font-medium">
+          Pronto! Após a Vercel publicar esta última alteração, seus pedidos começarão a chegar em tempo real no seu painel.
+        </p>
+
       </div>
     </div>
   </div>

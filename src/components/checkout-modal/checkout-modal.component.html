@@ -78,14 +78,14 @@
                 <div class="flex justify-center items-center h-12 w-12 bg-green-100 rounded-full mx-auto mb-3">
                 <svg class="h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <h2 class="text-xl font-bold text-[var(--text-primary)]">Pedido Recebido!</h2>
-                <p class="text-sm text-[var(--text-secondary)] mt-1">Confira os detalhes e envie via WhatsApp.</p>
+                <h2 class="text-xl font-bold text-[var(--text-primary)]">Pedido Enviado com Sucesso!</h2>
+                <p class="text-sm text-[var(--text-secondary)] mt-1">A loja já recebeu seu pedido. Você pode acompanhar usando o código abaixo.</p>
             </div>
 
             <div class="p-6 overflow-y-auto font-mono text-sm text-[var(--text-primary)]">
                 <p class="font-bold">Cliente: <span class="font-normal">{{order.customerName}}</span></p>
                 <p class="font-bold">Endereço: <span class="font-normal">{{order.neighborhood}}, {{order.customerAddress}}</span></p>
-                <p class="font-bold">Pedido: <span class="font-normal">{{order.id}}</span></p>
+                <p class="font-bold">Código do Pedido: <span class="font-normal">{{order.id}}</span></p>
                 <p class="border-t border-b border-dashed my-3 py-1">DETALHES DO PEDIDO</p>
                 
                  @for (item of order.items; track item.id) {
@@ -130,7 +130,7 @@
             <div class="p-4 mt-auto border-t border-[var(--border-color)] bg-[var(--bg-page)] rounded-b-2xl space-y-3">
                 <a [href]="whatsappLink()" target="_blank" class="w-full flex items-center justify-center gap-3 bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-                    Enviar Pedido para o WhatsApp
+                    Enviar Cópia para meu WhatsApp
                 </a>
 
                 <button (click)="closeModal()" class="w-full text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium">

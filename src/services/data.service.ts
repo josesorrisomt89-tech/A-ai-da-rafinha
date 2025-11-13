@@ -3,6 +3,7 @@ import { Product, Category, Modifier, ModifierCategory, CartItem, Order, AppSett
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from './notification.service';
 import { MENU_DATA } from '../data/menu-data';
+import { OrderSyncService } from './order-sync.service';
 
 const EMPTY_SETTINGS: AppSettings = {
     storeName: "Carregando...",
@@ -17,6 +18,7 @@ const EMPTY_SETTINGS: AppSettings = {
 @Injectable({ providedIn: 'root' })
 export class DataService {
   private notificationService = inject(NotificationService);
+  private orderSyncService = inject(OrderSyncService, { optional: true });
 
   // Core Data Signals
   products = signal<Product[]>([]);
@@ -168,8 +170,15 @@ export class DataService {
       isOnlineOrder: true,
       paymentStatus: 'pending'
     };
+    
+    // Add locally for customer's receipt page
     this.orders.update(current => [newOrder, ...current]);
-    this.notificationService.notifyNewOrder();
+    
+    // Send to the cloud for the admin to receive in real-time
+    this.orderSyncService?.sendOrder(newOrder).catch(err => {
+        console.error("Failed to sync order:", err);
+    });
+
     this.clearCart();
     return newOrder;
   }

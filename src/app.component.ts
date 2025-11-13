@@ -14,6 +14,7 @@ import { OrderTrackingComponent } from './components/order-tracking/order-tracki
 import { Product, Permission } from './models/product.model';
 import { NotificationService } from './services/notification.service';
 import { DataService } from './services/data.service';
+import { OrderSyncService } from './services/order-sync.service';
 
 type View = 'landing' | 'menu' | 'pos' | 'admin' | 'track' | 'kitchen';
 
@@ -38,6 +39,7 @@ type View = 'landing' | 'menu' | 'pos' | 'admin' | 'track' | 'kitchen';
 export class AppComponent {
   private notificationService = inject(NotificationService);
   dataService = inject(DataService);
+  private orderSyncService = inject(OrderSyncService); // Initializes the service
   
   currentView = signal<View>('landing');
   isAuthenticated = computed(() => !!this.dataService.currentUser());
