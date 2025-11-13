@@ -84,7 +84,7 @@ export class DataService {
 
   private loadInitialData(): void {
     try {
-        const fileData: any = MENU_DATA; // Use imported data directly
+        const fileData: any = MENU_DATA;
         const remoteVersion = fileData.version || 0;
         const localVersion = this.loadFromLocalStorage('version', -1);
         const localSettings = this.loadFromLocalStorage('settings', null);
@@ -109,7 +109,7 @@ export class DataService {
           this.sizes.set(this.loadFromLocalStorage('sizes', fileData.sizes));
           this.toppings.set(this.loadFromLocalStorage('toppings', fileData.toppings));
           this.modifierCategories.set(this.loadFromLocalStorage('modifierCategories', fileData.modifierCategories));
-          this.settings.set(localSettings); // Already loaded
+          this.settings.set(localSettings!); // Already loaded
           this.deliveryZones.set(this.loadFromLocalStorage('deliveryZones', fileData.deliveryZones));
           this.users.set(this.loadFromLocalStorage('users', fileData.users));
         }
@@ -285,7 +285,7 @@ export class DataService {
   }
 
   // --- DATA IMPORT/EXPORT ---
-  exportDataForUpdate(): string {
+  exportDataForUpdate(): { content: string, filename: string } {
     const dataToExport = {
       version: Date.now(), // Add a new timestamp for this export
       settings: this.settings(),
@@ -298,11 +298,19 @@ export class DataService {
       deliveryZones: this.deliveryZones(),
       orders: [], // Intentionally not exporting transactional data like orders
     };
-    return JSON.stringify(dataToExport, null, 2);
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const tsContent = `export const MENU_DATA = ${jsonString};
+`;
+    return { content: tsContent, filename: 'menu-data.ts' };
   }
 
-  importData(jsonData: string): boolean {
+  importData(fileContent: string): boolean {
     try {
+      let jsonData = fileContent.trim();
+      if (jsonData.startsWith('export const MENU_DATA =')) {
+        jsonData = jsonData.replace('export const MENU_DATA =', '').replace(/;$/, '').trim();
+      }
+
       const data = JSON.parse(jsonData);
       // Basic validation
       if (
@@ -310,7 +318,7 @@ export class DataService {
         !data.users || !data.deliveryZones || !data.sizes ||
         !data.modifierCategories || !data.toppings
       ) {
-        throw new Error("Arquivo JSON inválido ou faltando chaves essenciais.");
+        throw new Error("Arquivo JSON/TS inválido ou faltando chaves essenciais.");
       }
       
       this.settings.set(data.settings);

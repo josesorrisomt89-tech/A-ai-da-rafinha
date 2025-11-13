@@ -372,9 +372,9 @@
                     <div>
                       <h3 class="text-xl font-semibold">Como Publicar Suas Alterações Para Clientes</h3>
                       <ol class="text-[var(--text-secondary)] text-sm my-2 list-decimal list-inside space-y-1">
-                          <li>Exporte seus dados clicando no botão abaixo. Isso irá baixar o arquivo 'menu.json'.</li>
-                          <li>Abra o arquivo 'menu.json' em um editor de texto e copie TODO o seu conteúdo.</li>
-                          <li>No código-fonte do projeto, abra o arquivo `src/data/menu-data.ts` e cole o conteúdo copiado, substituindo os dados antigos.</li>
+                          <li>Exporte seus dados clicando no botão abaixo. Isso irá baixar o arquivo 'menu-data.ts'.</li>
+                          <li>Na estrutura de arquivos do projeto, localize a pasta `src/data`.</li>
+                          <li>Substitua o arquivo `menu-data.ts` existente dentro de `src/data` pelo arquivo que você acabou de baixar.</li>
                           <li>Após salvar e publicar o site, as alterações estarão visíveis para todos.</li>
                       </ol>
                       <button type="button" (click)="exportData()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
@@ -384,9 +384,9 @@
                      <div>
                       <h3 class="text-xl font-semibold">Backup e Restauração Local</h3>
                        <p class="text-[var(--text-secondary)] text-sm my-2">
-                          Isto serve para restaurar seus dados neste navegador, caso tenha limpado o cache ou trocado de computador. Use um arquivo 'menu.json' que você exportou anteriormente.
+                          Isto serve para restaurar seus dados neste navegador. Use um arquivo 'menu-data.ts' ou 'menu.json' que você exportou anteriormente.
                       </p>
-                      <input type="file" #fileInput (change)="onFileSelected($event)" accept=".json" class="hidden">
+                      <input type="file" #fileInput (change)="onFileSelected($event)" accept=".json,.ts" class="hidden">
                       <button type="button" (click)="fileInput.click()" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">
                           Importar Backup Local
                       </button>
