@@ -18,7 +18,7 @@ const EMPTY_SETTINGS: AppSettings = {
 @Injectable({ providedIn: 'root' })
 export class DataService {
   private notificationService = inject(NotificationService);
-  private orderSyncService = inject(OrderSyncService, { optional: true });
+  private orderSyncService = inject(OrderSyncService);
 
   // Core Data Signals
   products = signal<Product[]>([]);
@@ -58,6 +58,27 @@ export class DataService {
       this.saveToLocalStorage('expenses', this.expenses());
       this.saveToLocalStorage('accountsPayable', this.accountsPayable());
       this.saveToLocalStorage('cashRegisterHistory', this.cashRegisterHistory());
+    });
+
+    // Subscribe to new orders from the sync service
+    this.orderSyncService.newOrders$.subscribe(newOrder => {
+      // Check if order already exists to avoid duplicates
+      const exists = this.orders().some(o => o.id === newOrder.id);
+      if (!exists) {
+        this.orders.update(current => [newOrder, ...current]);
+        
+        // Only notify if an admin user is logged in
+        if (this.currentUser()) {
+          this.notificationService.notifyNewOrder();
+        }
+      }
+    });
+
+    // Start listening for orders when a user logs in
+    effect(() => {
+      if (this.currentUser()) {
+        this.orderSyncService.startListeningForOrders();
+      }
     });
   }
 
@@ -175,7 +196,7 @@ export class DataService {
     this.orders.update(current => [newOrder, ...current]);
     
     // Send to the cloud for the admin to receive in real-time
-    this.orderSyncService?.sendOrder(newOrder).catch(err => {
+    this.orderSyncService.sendOrder(newOrder).catch(err => {
         console.error("Failed to sync order:", err);
     });
 
