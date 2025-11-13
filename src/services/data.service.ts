@@ -77,7 +77,9 @@ export class DataService {
     // Start listening for orders when a user logs in, and stop when they log out.
     effect((onCleanup) => {
       if (this.currentUser()) {
-        this.orderSyncService.startListeningForOrders();
+        this.orderSyncService.startListeningForOrders().catch(err => {
+            console.error('Failed to start listening for Firebase orders:', err);
+        });
         
         onCleanup(() => {
           this.orderSyncService.stopListeningForOrders();

@@ -21,6 +21,7 @@ export class OrderSyncService {
   private isListening = false;
   private firebaseReady: Promise<void>;
   private resolveFirebaseReady!: () => void;
+  private rejectFirebaseReady!: (reason?: any) => void;
   private unsubscribeFromOrders: (() => void) | null = null;
 
   // Store imported functions to avoid re-importing
@@ -37,15 +38,19 @@ export class OrderSyncService {
   public newOrders$ = this.newOrdersSubject.asObservable();
 
   constructor() {
-    this.firebaseReady = new Promise(resolve => {
+    this.firebaseReady = new Promise((resolve, reject) => {
         this.resolveFirebaseReady = resolve;
+        this.rejectFirebaseReady = reject;
     });
     this.initializeFirebase();
   }
 
   private async initializeFirebase(): Promise<void> {
     if (!isFirebaseConfigured()) {
-      console.warn("Firebase não configurado. A sincronização de pedidos em tempo real está desativada.");
+      console.warn("Firebase not configured. Real-time order sync is disabled.");
+      // Resolve the promise to allow the app to function without real-time features.
+      // The service will operate in a disabled state gracefully.
+      this.resolveFirebaseReady();
       return;
     }
 
@@ -69,27 +74,34 @@ export class OrderSyncService {
       this.db = this._getDatabase(app);
       this.resolveFirebaseReady(); // Signal that Firebase is ready
     } catch (e) {
-      console.error("Não foi possível inicializar o Firebase. A sincronização de pedidos em tempo real estará desativada.", e);
-      alert("A configuração do Firebase parece estar incorreta. Verifique o arquivo 'src/config/firebase.config.ts'.");
+      console.error("Failed to initialize Firebase. Real-time order sync will be disabled.", e);
+      // Even with a config, initialization can fail. We resolve to prevent crashes.
+      this.resolveFirebaseReady();
     }
   }
 
   async sendOrder(order: Order): Promise<void> {
-    await this.firebaseReady;
-    if (!this.db) {
-      console.log("Firebase não disponível, o pedido não foi enviado em tempo real.");
-      return;
+    try {
+      await this.firebaseReady;
+      if (!this.db) {
+        // This is now the expected path when Firebase is not configured.
+        return;
+      }
+      const ordersRef = this._ref(this.db, 'online-orders');
+      await this._push(ordersRef, order);
+    } catch(err) {
+      console.error("Error sending order to Firebase:", err);
     }
-    const ordersRef = this._ref(this.db, 'online-orders');
-    await this._push(ordersRef, order);
   }
 
   async startListeningForOrders(): Promise<void> {
     await this.firebaseReady;
-    if (!this.db || this.isListening) return;
+    if (!this.db || this.isListening) {
+      return;
+    }
     
     this.isListening = true;
-    console.log("Iniciando escuta por novos pedidos online...");
+    console.log("Starting to listen for new online orders...");
     
     const ordersRef = this._ref(this.db, 'online-orders');
     const recentOrdersQuery = this._query(ordersRef, this._orderByChild('timestamp'), this._startAt(Date.now()));
@@ -97,7 +109,7 @@ export class OrderSyncService {
     this.unsubscribeFromOrders = this._onChildAdded(recentOrdersQuery, (snapshot: DataSnapshot) => {
       const newOrder = snapshot.val() as Order;
       if (newOrder) {
-        console.log("Tempo real: novo pedido recebido do Firebase", newOrder);
+        console.log("Real-time: new order received from Firebase", newOrder);
         this.newOrdersSubject.next(newOrder);
       }
     });
@@ -108,7 +120,7 @@ export class OrderSyncService {
       this.unsubscribeFromOrders();
       this.unsubscribeFromOrders = null;
       this.isListening = false;
-      console.log("Parou de escutar por novos pedidos online.");
+      console.log("Stopped listening for new online orders.");
     }
   }
 }
