@@ -25,5 +25,5 @@ const firebaseConfig = {
  * @returns {boolean} True se a configuração parece ter sido preenchida.
  */
 export const isFirebaseConfigured = (): boolean => {
-    return FIREBASE_CONFIG.apiKey !== "AIzaSyAjWUJltQO3uHgsh5rBE3GqGP7AgU6BYVs" && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID";
+    return FIREBASE_CONFIG.apiKey !== "AIzaSyAjWUJltQO3uHgsh5rBE3GqGP7AgU6BYVs" && FIREBASE_CONFIG.projectId !== "cardapio-acai-da-rafinha";
 }
