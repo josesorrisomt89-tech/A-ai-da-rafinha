@@ -77,9 +77,9 @@
     { "id": "agua_sem_gas", "name": "Água sem Gás", "description": "500ml", "imageUrl": "https://i.imgur.com/o5Qk9gT.jpeg", "basePrice": 3, "cost": 1, "categoryId": "bebidas", "productSpecificSizes": [], "modifierCategoryIds": [] }
   ],
   "users": [
-    { "id": "user_admin", "name": "Admin", "pin": "1234", "isAdmin": true, "permissions": [] },
-    { "id": "user_caixa", "name": "Caixa", "pin": "1111", "isAdmin": false, "permissions": ["access_pos"] },
-    { "id": "user_cozinha", "name": "Cozinha", "pin": "2222", "isAdmin": false, "permissions": ["access_kitchen"] }
+    { "id": "user_admin", "name": "Admin", "password": "admin@123", "isAdmin": true, "permissions": [] },
+    { "id": "user_caixa", "name": "Caixa", "password": "caixa@123", "isAdmin": false, "permissions": ["access_pos"] },
+    { "id": "user_cozinha", "name": "Cozinha", "password": "cozinha@123", "isAdmin": false, "permissions": ["access_kitchen"] }
   ],
   "deliveryZones": [
     { "id": "zona_1", "neighborhood": "Centro", "fee": 5 },

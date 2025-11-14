@@ -216,8 +216,8 @@ export class DataService {
   }
 
   // --- AUTH ---
-  login(pin: string): boolean {
-    const user = this.users().find(u => u.pin === pin);
+  login(password: string): boolean {
+    const user = this.users().find(u => u.password === password);
     if (user) {
       this.currentUser.set(user);
       return true;

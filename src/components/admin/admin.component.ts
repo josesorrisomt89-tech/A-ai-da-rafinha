@@ -144,7 +144,7 @@ export class AdminComponent {
     if (type === 'category') { this.editingCategory.set({ id: 'new_' + uuidv4(), name: '' }); }
     if (type === 'modifier_group') { this.editingModifierGroup.set({ id: 'new_' + uuidv4(), name: '', isRequired: false, maxSelection: 1 }); }
     if (type === 'delivery_zone') { this.editingDeliveryZone.set({ id: 'new_' + uuidv4(), neighborhood: '', fee: 0 }); }
-    if (type === 'user') { this.editingUser.set({ id: 'new_' + uuidv4(), name: '', pin: '', isAdmin: false, permissions: [] }); }
+    if (type === 'user') { this.editingUser.set({ id: 'new_' + uuidv4(), name: '', password: '', isAdmin: false, permissions: [] }); }
     if (type === 'expense') { this.editingExpense.set({ id: 'new_' + uuidv4(), description: '', amount: 0, date: new Date().toISOString().split('T')[0] }); }
     if (type === 'payable') { this.editingPayable.set({ id: 'new_' + uuidv4(), description: '', amount: 0, dueDate: new Date().toISOString().split('T')[0], isPaid: false }); }
     this.openModal(type);

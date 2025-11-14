@@ -5,7 +5,7 @@ import { DataService } from '../../services/data.service';
 import { Permission } from '../../models/product.model';
 
 type View = 'menu' | 'pos' | 'admin' | 'kitchen';
-type LoginStep = 'pin' | 'destination';
+type LoginStep = 'password' | 'destination';
 
 @Component({
   selector: 'PosLoginModal',
@@ -20,9 +20,9 @@ export class PosLoginModalComponent {
   close = output<void>();
   navigateTo = output<View>();
 
-  pin = signal('');
+  password = signal('');
   error = signal('');
-  step = signal<LoginStep>('pin');
+  step = signal<LoginStep>('password');
   
   canAccessPos = computed(() => {
     const user = this.dataService.currentUser();
@@ -44,14 +44,14 @@ export class PosLoginModalComponent {
     return user.permissions.some(p => adminPermissions.includes(p));
   });
 
-  checkPin() {
-    if (this.dataService.login(this.pin())) {
+  checkPassword() {
+    if (this.dataService.login(this.password())) {
       this.loginSuccess.emit();
       this.step.set('destination');
       this.error.set('');
     } else {
-      this.error.set('PIN incorreto. Tente novamente.');
-      this.pin.set('');
+      this.error.set('Senha incorreta. Tente novamente.');
+      this.password.set('');
     }
   }
   
@@ -60,9 +60,9 @@ export class PosLoginModalComponent {
   }
 
   closeModal() {
-    this.pin.set('');
+    this.password.set('');
     this.error.set('');
-    this.step.set('pin');
+    this.step.set('password');
     this.close.emit();
   }
   

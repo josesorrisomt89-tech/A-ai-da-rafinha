@@ -384,10 +384,10 @@
               @case ('operational') {
                   <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold">Gerenciamento de Funcionários</h3><button type="button" (click)="startNew('user')" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">+ Adicionar Funcionário</button></div>
                   <div class="h-[60vh] overflow-y-auto border border-[var(--border-color)] rounded-lg">
-                    <table class="w-full text-sm text-left"><thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Nome</th><th>PIN</th><th>Permissões</th><th>Ações</th></tr></thead><tbody>
+                    <table class="w-full text-sm text-left"><thead class="bg-[var(--bg-page)] sticky top-0"><tr><th class="p-3">Nome</th><th>Senha</th><th>Permissões</th><th>Ações</th></tr></thead><tbody>
                           @for(user of dataService.users(); track user.id) {
                             <tr class="border-b border-[var(--border-color)] last:border-0">
-                              <td class="p-3 font-semibold">{{user.name}}</td><td>****</td>
+                              <td class="p-3 font-semibold">{{user.name}}</td><td>********</td>
                               <td>@if(user.isAdmin){<span class="px-2 py-0.5 text-xs rounded-full bg-purple-200 text-purple-800 font-bold">ADMINISTRADOR</span>} @else {<span>{{user.permissions.length}} permissões</span>}</td>
                               <td class="space-x-2"><button type="button" (click)="editItem(user, 'user')" class="text-blue-600 hover:underline">Editar</button><button type="button" (click)="confirmDelete(user.id, 'user')" class="text-red-600 hover:underline">Excluir</button></td>
                             </tr>
@@ -637,7 +637,7 @@
        <div class="p-6 overflow-y-auto space-y-4 max-h-[70vh]">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label>Nome</label><input type="text" [(ngModel)]="user.name" name="name" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
-            <div><label>PIN (4 dígitos)</label><input type="text" [(ngModel)]="user.pin" name="pin" required maxlength="4" class="w-full p-2 mt-1 border rounded bg-transparent"></div>
+            <div><label>Senha</label><input type="password" [(ngModel)]="user.password" name="password" required class="w-full p-2 mt-1 border rounded bg-transparent"></div>
           </div>
           <div>
             <h4 class="font-semibold mb-2">Permissões de Acesso</h4>

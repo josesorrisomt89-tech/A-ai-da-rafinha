@@ -154,7 +154,7 @@ export type Permission =
 export interface User {
     id: string;
     name: string;
-    pin: string; // Stored as plain text for this simple app
+    password: string; // Stored as plain text for this simple app
     isAdmin: boolean;
     permissions: Permission[];
 }
