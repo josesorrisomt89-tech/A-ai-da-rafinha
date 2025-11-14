@@ -64,7 +64,9 @@
         <div (click)="onProductClick(product)" class="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden cursor-pointer flex items-center gap-4 p-4 transform hover:scale-105 transition-transform duration-300">
           <div class="flex-grow">
             <h3 class="font-bold text-lg text-[var(--text-primary)]">{{ product.name }}</h3>
-            @if(product.description) {
+            @if(product.info) {
+              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.info, 60) }}</p>
+            } @else if(product.description) {
               <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.description, 60) }}</p>
             }
             <p class="font-semibold text-[var(--color-primary)] mt-2">A partir de R$ {{ product.basePrice.toFixed(2) }}</p>

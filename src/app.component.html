@@ -12,7 +12,7 @@
         <Menu (productSelect)="openProductModal($event)" (showCheckout)="openCheckoutModal()" (viewChange)="handleViewChange($event)"></Menu>
       }
        @case ('track') {
-        <OrderTracking (viewChange)="handleViewChange($event)"></OrderTracking>
+        <OrderTracking (viewChange)="handleViewChange($event)" (reordered)="handleReorder()"></OrderTracking>
       }
       @case ('pos') {
         <Pos (productSelect)="openProductModal($event)"></Pos>

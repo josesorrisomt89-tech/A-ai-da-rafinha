@@ -130,4 +130,8 @@ export class AppComponent {
   closePosLoginModal() {
     this.isPosLoginModalOpen.set(false);
   }
+
+  handleReorder() {
+    this.currentView.set('menu');
+  }
 }

@@ -13,6 +13,8 @@ const EMPTY_SETTINGS: AppSettings = {
     accentColor: '#ff69b4', textColorOnPrimary: '#ffffff', backgroundColorPage: '#f3e5f5',
     backgroundColorCard: '#ffffff', textColorPrimary: '#333333', textColorSecondary: '#666666', borderColor: '#e0e0e0',
 };
+const ORDER_HISTORY_KEY = 'acai_app_order_history';
+const MAX_HISTORY_ITEMS = 10;
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -188,6 +190,29 @@ export class DataService {
   
   updateOrderPaymentStatus(orderId: string, status: PaymentStatus) {
     this.orders.update(orders => orders.map(o => o.id === orderId ? { ...o, paymentStatus: status } : o));
+  }
+
+  // --- ORDER HISTORY ---
+  getOrderHistory(): Order[] {
+    return this.loadFromLocalStorage(ORDER_HISTORY_KEY, []);
+  }
+
+  saveOrderToHistory(order: Order) {
+    try {
+      const history = this.getOrderHistory();
+      const newHistory = [order, ...history].slice(0, MAX_HISTORY_ITEMS);
+      this.saveToLocalStorage(ORDER_HISTORY_KEY, newHistory);
+    } catch (e) {
+      console.error("Failed to save order to history:", e);
+    }
+  }
+
+  reorderFromHistory(order: Order) {
+    const newCartItems: CartItem[] = order.items.map(item => ({
+      ...item,
+      id: uuidv4() // Generate new unique IDs for the new cart items
+    }));
+    this.cart.set(newCartItems);
   }
 
   // --- AUTH ---

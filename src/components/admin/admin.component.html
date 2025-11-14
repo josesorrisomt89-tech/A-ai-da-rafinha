@@ -582,6 +582,10 @@
               <input type="file" accept="image/*" (change)="onProductImageChange($event)" class="text-sm">
            </div>
            <div>
+             <label class="block text-sm font-medium">Informação Adicional (Ex: Acompanhamentos)</label>
+             <textarea [(ngModel)]="product.info" name="info" rows="2" class="w-full p-2 mt-1 border rounded bg-transparent"></textarea>
+           </div>
+           <div>
              <h4 class="font-semibold mt-4">Tamanhos Específicos (Opcional)</h4>
                   <div class="space-y-2">
                     @for(size of product.productSpecificSizes; track size.id; let i = $index) {

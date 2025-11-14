@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
@@ -12,12 +12,18 @@ type View = 'menu' | 'pos' | 'admin' | 'track';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
 })
-export class OrderTrackingComponent {
+export class OrderTrackingComponent implements OnInit {
   dataService = inject(DataService);
   viewChange = output<View>();
+  reordered = output<void>();
   
   orderIdInput = signal('');
   searchedId = signal('');
+  orderHistory = signal<Order[]>([]);
+
+  ngOnInit() {
+    this.orderHistory.set(this.dataService.getOrderHistory());
+  }
   
   foundOrder = computed(() => {
     const id = this.searchedId();
@@ -49,5 +55,10 @@ export class OrderTrackingComponent {
   
   changeView(view: View) {
     this.viewChange.emit(view);
+  }
+
+  reorder(order: Order) {
+    this.dataService.reorderFromHistory(order);
+    this.reordered.emit();
   }
 }

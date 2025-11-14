@@ -172,7 +172,7 @@ export class AdminComponent {
   
   // Special cases: Product, Modifier
   startNewProduct() {
-    this.editingProduct.set({ id: 'new_' + uuidv4(), name: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], modifierCategoryOrder: [], productSpecificSizes: [] });
+    this.editingProduct.set({ id: 'new_' + uuidv4(), name: '', description: '', info: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], modifierCategoryOrder: [], productSpecificSizes: [] });
     this.openModal('product');
   }
 

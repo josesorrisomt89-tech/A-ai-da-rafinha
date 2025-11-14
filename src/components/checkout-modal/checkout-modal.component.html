@@ -41,7 +41,12 @@
           }
 
           <div>
-            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Seu Nome</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm font-medium text-[var(--text-primary)]">Seu Nome</label>
+              @if(hasSavedInfo()) {
+                <button (click)="forgetCustomerInfo()" type="button" class="text-xs text-slate-500 hover:text-red-500 hover:underline">Esquecer dados</button>
+              }
+            </div>
             <input type="text" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" placeholder="Digite seu nome completo" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
           </div>
            <div>
@@ -53,13 +58,19 @@
             <select [ngModel]="selectedNeighborhoodId()" (ngModelChange)="selectedNeighborhoodId.set($event)" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)]">
               <option [ngValue]="null" disabled>Selecione seu bairro</option>
               @for(zone of dataService.deliveryZones(); track zone.id) {
-                <option [ngValue]="zone.id">{{zone.neighborhood}} (+ R$ {{zone.fee.toFixed(2)}})</option>
+                <option [ngValue]="zone.id">{{zone.neighborhood}}</option>
               }
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Rua, Número e Complemento</label>
             <input type="text" [ngModel]="customerStreetAddress()" (ngModelChange)="customerStreetAddress.set($event)" placeholder="Ex: Rua das Flores, 123, Apto 4" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
+          </div>
+          <div class="!mt-6">
+            <label class="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              <input type="checkbox" [ngModel]="saveInfo()" (ngModelChange)="saveInfo.set($event)" class="form-checkbox h-4 w-4 rounded text-[var(--color-primary)] focus:ring-[var(--color-primary)] border-[var(--border-color)]">
+              Salvar minhas informações para a próxima compra
+            </label>
           </div>
           <div>
             <h3 class="text-md font-semibold text-[var(--text-primary)] mb-2">Forma de Pagamento</h3>

@@ -30,11 +30,11 @@
       
       <!-- Adicionais -->
       @for (category of toppingsByCategory(); track category.id) {
-        <div>
+        <div [class]="category.isRequired ? 'p-4 rounded-lg border bg-amber-50 border-amber-300' : ''">
           <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
             {{ category.name }}
             @if(category.isRequired) {
-              <span class="text-xs font-medium bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Obrigatório</span>
+              <span class="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Obrigatório</span>
             }
              @if(category.maxSelection === 1 && !category.isRequired) {
               <span class="text-sm font-normal text-[var(--text-secondary)]">(Escolha 1)</span>

@@ -75,6 +75,30 @@
           <p class="text-[var(--text-secondary)]">Buscando...</p>
         </div>
     }
+
+    <!-- Order History -->
+    <div class="mt-12">
+      <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">Histórico de Pedidos Anteriores</h2>
+      @if(orderHistory().length > 0) {
+        <div class="space-y-4">
+          @for(order of orderHistory(); track order.id) {
+            <div class="bg-[var(--bg-card)] p-4 rounded-lg shadow-md flex justify-between items-center">
+              <div>
+                <p class="font-semibold text-[var(--text-primary)]">Pedido de {{ order.timestamp | date:'dd/MM/yy' }}</p>
+                <p class="text-sm text-[var(--text-secondary)]">{{ order.items.length }} item(ns) - R$ {{ order.total.toFixed(2) }}</p>
+              </div>
+              <button (click)="reorder(order)" class="bg-green-100 text-green-800 font-semibold py-2 px-4 rounded-lg hover:bg-green-200 transition-colors text-sm">
+                Pedir Novamente
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="bg-[var(--bg-card)] p-8 rounded-lg shadow-lg text-center">
+          <p class="text-[var(--text-secondary)]">Você ainda não tem pedidos no seu histórico.</p>
+        </div>
+      }
+    </div>
   </div>
 </div>
 

@@ -31,7 +31,14 @@ export class CheckoutModalComponent {
   scheduledDate = signal<string>('');
   scheduledTime = signal<string>('');
 
+  // Customer info persistence
+  saveInfo = signal(true);
+  hasSavedInfo = signal(false);
+  private readonly CUSTOMER_INFO_KEY = 'acai_app_customer_info';
+
   constructor() {
+    this.loadCustomerInfo();
+
     effect(() => {
         if (!this.isStoreOpen() && this.availableScheduleDays().length > 0) {
             this.scheduledDate.set(this.availableScheduleDays()[0].value);
@@ -163,9 +170,58 @@ export class CheckoutModalComponent {
     return paid - total;
   });
 
+  private loadCustomerInfo(): void {
+    try {
+      const savedInfo = localStorage.getItem(this.CUSTOMER_INFO_KEY);
+      if (savedInfo) {
+        const info = JSON.parse(savedInfo);
+        this.customerName.set(info.name || '');
+        this.customerPhone.set(info.phone || '');
+        this.selectedNeighborhoodId.set(info.neighborhoodId || null);
+        this.customerStreetAddress.set(info.streetAddress || '');
+        this.hasSavedInfo.set(true);
+      }
+    } catch (e) {
+      console.error('Error loading customer info from localStorage', e);
+      this.hasSavedInfo.set(false);
+    }
+  }
+
+  private saveCustomerInfo(): void {
+    try {
+      const info = {
+        name: this.customerName(),
+        phone: this.customerPhone(),
+        neighborhoodId: this.selectedNeighborhoodId(),
+        streetAddress: this.customerStreetAddress(),
+      };
+      localStorage.setItem(this.CUSTOMER_INFO_KEY, JSON.stringify(info));
+      this.hasSavedInfo.set(true);
+    } catch (e) {
+      console.error('Error saving customer info to localStorage', e);
+    }
+  }
+
+  forgetCustomerInfo(): void {
+    try {
+      localStorage.removeItem(this.CUSTOMER_INFO_KEY);
+      this.customerName.set('');
+      this.customerPhone.set('');
+      this.selectedNeighborhoodId.set(null);
+      this.customerStreetAddress.set('');
+      this.hasSavedInfo.set(false);
+    } catch (e) {
+      console.error('Error removing customer info from localStorage', e);
+    }
+  }
+
   submitOrder() {
     if (!this.isFormValid()) return;
     
+    if (this.saveInfo()) {
+      this.saveCustomerInfo();
+    }
+
     const zone = this.selectedDeliveryZone();
     if (!zone) return;
 
@@ -186,7 +242,8 @@ export class CheckoutModalComponent {
       deliveryFee: zone.fee,
       scheduledDeliveryTime: scheduledTimestamp,
     });
-
+    
+    this.dataService.saveOrderToHistory(order);
     this.finalOrder.set(order);
     this.checkoutStep.set('receipt');
   }
