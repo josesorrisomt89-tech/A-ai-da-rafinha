@@ -49,6 +49,9 @@
     <!-- Category Tabs -->
     <div class="sticky top-0 bg-[var(--bg-page)] z-10 py-2 mb-6">
       <div class="flex space-x-2 overflow-x-auto pb-2 -mx-4 px-4">
+        <button (click)="selectedCategoryId.set('all')" class="px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors" [class.bg-[var(--color-primary)]]="selectedCategoryId() === 'all'" [class.text-[var(--color-text-on-primary)]]="selectedCategoryId() === 'all'" [class.bg-[var(--bg-card)]]="selectedCategoryId() !== 'all'" [class.text-[var(--text-primary)]]="selectedCategoryId() !== 'all'" [class.shadow]="selectedCategoryId() !== 'all'">
+          Todos
+        </button>
         @for (category of dataService.categories(); track category.id) {
           <button (click)="selectedCategoryId.set(category.id)" class="px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors" [class.bg-[var(--color-primary)]]="selectedCategoryId() === category.id" [class.text-[var(--color-text-on-primary)]]="selectedCategoryId() === category.id" [class.bg-[var(--bg-card)]]="selectedCategoryId() !== category.id" [class.text-[var(--text-primary)]]="selectedCategoryId() !== category.id" [class.shadow]="selectedCategoryId() !== category.id">
             {{ category.name }}
@@ -58,27 +61,57 @@
     </div>
 
     <!-- Product List -->
-    <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">{{ selectedCategoryName() }}</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (product of filteredProducts(); track product.id) {
-        <div (click)="onProductClick(product)" class="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden cursor-pointer flex items-center gap-4 p-4 transform hover:scale-105 transition-transform duration-300">
-          <div class="flex-grow">
-            <h3 class="font-bold text-lg text-[var(--text-primary)]">{{ product.name }}</h3>
-            @if(product.info) {
-              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.info, 60) }}</p>
-            } @else if(product.description) {
-              <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.description, 60) }}</p>
-            }
-            <p class="font-semibold text-[var(--color-primary)] mt-2">A partir de R$ {{ getStartingPrice(product).toFixed(2) }}</p>
+    @if (selectedCategoryId() === 'all') {
+      <div class="space-y-10">
+        @for(group of productsGroupedByCategory(); track group.categoryId) {
+          <div>
+            <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">{{ group.categoryName }}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              @for (product of group.products; track product.id) {
+                <div (click)="onProductClick(product)" class="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden cursor-pointer flex items-center gap-4 p-4 transform hover:scale-105 transition-transform duration-300">
+                  <div class="flex-grow">
+                    <h3 class="font-bold text-lg text-[var(--text-primary)]">{{ product.name }}</h3>
+                    @if(product.info) {
+                      <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.info, 60) }}</p>
+                    } @else if(product.description) {
+                      <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.description, 60) }}</p>
+                    }
+                    <p class="font-semibold text-[var(--color-primary)] mt-2">A partir de R$ {{ getStartingPrice(product).toFixed(2) }}</p>
+                  </div>
+                  @if(product.imageUrl) {
+                    <img [src]="product.imageUrl" [alt]="product.name" class="w-24 h-24 object-cover rounded-md flex-shrink-0">
+                  }
+                </div>
+              }
+            </div>
           </div>
-          @if(product.imageUrl) {
-            <img [src]="product.imageUrl" [alt]="product.name" class="w-24 h-24 object-cover rounded-md flex-shrink-0">
-          }
-        </div>
-      } @empty {
-          <p class="text-[var(--text-secondary)] md:col-span-2 lg:col-span-3 text-center py-8">Nenhum produto nesta categoria.</p>
-      }
-    </div>
+        } @empty {
+          <p class="text-[var(--text-secondary)] text-center py-8">Nenhum produto encontrado.</p>
+        }
+      </div>
+    } @else {
+      <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">{{ selectedCategoryName() }}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (product of filteredProducts(); track product.id) {
+          <div (click)="onProductClick(product)" class="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden cursor-pointer flex items-center gap-4 p-4 transform hover:scale-105 transition-transform duration-300">
+            <div class="flex-grow">
+              <h3 class="font-bold text-lg text-[var(--text-primary)]">{{ product.name }}</h3>
+              @if(product.info) {
+                <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.info, 60) }}</p>
+              } @else if(product.description) {
+                <p class="text-sm text-[var(--text-secondary)] mt-1">{{ truncateText(product.description, 60) }}</p>
+              }
+              <p class="font-semibold text-[var(--color-primary)] mt-2">A partir de R$ {{ getStartingPrice(product).toFixed(2) }}</p>
+            </div>
+            @if(product.imageUrl) {
+              <img [src]="product.imageUrl" [alt]="product.name" class="w-24 h-24 object-cover rounded-md flex-shrink-0">
+            }
+          </div>
+        } @empty {
+            <p class="text-[var(--text-secondary)] md:col-span-2 lg:col-span-3 text-center py-8">Nenhum produto nesta categoria.</p>
+        }
+      </div>
+    }
   </div>
 </div>
 

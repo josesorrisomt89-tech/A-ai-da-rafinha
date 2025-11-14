@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal, computed, effect, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { Product, Modifier } from '../../models/product.model';
@@ -21,19 +21,10 @@ export class MenuComponent implements OnInit, OnDestroy {
   viewChange = output<View>();
 
   isCartVisible = signal(false);
-  selectedCategoryId = signal<string | null>(null);
+  selectedCategoryId = signal<string>('all'); // 'all' or a category ID
   
   private timer: any;
   currentBannerIndex = signal(0);
-
-  constructor() {
-    effect(() => {
-      // Set initial category when categories are loaded
-      if (!this.selectedCategoryId() && this.dataService.categories().length > 0) {
-        this.selectedCategoryId.set(this.dataService.categories()[0].id);
-      }
-    });
-  }
   
   ngOnInit() {
     this.startBannerSlideshow();
@@ -65,18 +56,41 @@ export class MenuComponent implements OnInit, OnDestroy {
     return currentTime >= todayHours.open && currentTime < todayHours.close;
   });
 
+  productsGroupedByCategory = computed(() => {
+    const products = this.dataService.products();
+    const categories = this.dataService.categories();
+    
+    const productsByCat = new Map<string, Product[]>();
+    for (const product of products) {
+        if (!productsByCat.has(product.categoryId)) {
+            productsByCat.set(product.categoryId, []);
+        }
+        productsByCat.get(product.categoryId)!.push(product);
+    }
+    
+    return categories
+      .map(category => ({
+        categoryId: category.id,
+        categoryName: category.name,
+        products: productsByCat.get(category.id) || []
+      }))
+      .filter(group => group.products.length > 0);
+  });
+
   filteredProducts = computed(() => {
     const categoryId = this.selectedCategoryId();
-    if (!categoryId) {
-      return [];
+    if (categoryId === 'all') {
+      return []; // Not used in 'all' view
     }
     return this.dataService.products().filter(p => p.categoryId === categoryId);
   });
 
   selectedCategoryName = computed(() => {
     const categoryId = this.selectedCategoryId();
-    if (!categoryId) return '';
-    return this.dataService.categories().find(c => c.id === categoryId)?.name;
+    if (categoryId === 'all') {
+        return 'Todos os Produtos';
+    }
+    return this.dataService.categories().find(c => c.id === categoryId)?.name ?? '';
   });
 
   truncateText(text: string, maxLength: number): string {
