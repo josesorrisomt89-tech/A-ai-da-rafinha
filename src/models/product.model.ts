@@ -15,6 +15,7 @@ export interface Product {
   categoryId: string;
   productSpecificSizes: Modifier[];
   modifierCategoryIds: string[];
+  modifierCategoryOrder?: string[];
 }
 
 export interface Category {

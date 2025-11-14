@@ -60,20 +60,23 @@ export class ProductModalComponent {
       return [];
     }
 
-    const associatedCategoryIds = p.modifierCategoryIds;
     const allCategories = this.dataService.modifierCategories();
     const allToppings = this.dataService.toppings();
 
-    // Filter categories to only those associated with the product
-    const relevantCategories = allCategories.filter(cat => associatedCategoryIds.includes(cat.id));
-    
-    // Map and populate with toppings, then filter out empty categories
-    return relevantCategories.map(category => {
-      return {
+    // Use the product's custom order if available, otherwise fall back to the associated IDs list.
+    const orderedIds = p.modifierCategoryOrder && p.modifierCategoryOrder.length > 0
+        ? p.modifierCategoryOrder
+        : p.modifierCategoryIds;
+
+    // Map over the ordered IDs to build the final structure, ensuring we only include categories that are actually associated.
+    return orderedIds
+      .map(catId => allCategories.find(c => c.id === catId))
+      .filter((cat): cat is ModifierCategory => !!cat) // Filter out any undefined categories
+      .map(category => ({
         ...category,
         toppings: allToppings.filter(t => t.modifierCategoryId === category.id)
-      };
-    }).filter(c => c.toppings.length > 0);
+      }))
+      .filter(c => c.toppings.length > 0); // Only show categories that have toppings
   });
   
   isSelectionValid = computed(() => {

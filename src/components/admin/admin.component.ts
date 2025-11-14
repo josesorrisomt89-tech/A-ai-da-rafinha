@@ -99,6 +99,26 @@ export class AdminComponent {
   
   accountsReceivable = computed(() => this.dataService.orders().filter(o => o.paymentMethod === 'fiado' && o.paymentStatus === 'unpaid'));
 
+  // This computed signal will prepare the list of modifier groups for the editing modal.
+  // It will show selected groups first, in their custom order, followed by unselected groups.
+  productModifierGroupsForEditing = computed(() => {
+    const product = this.editingProduct();
+    if (!product) return [];
+
+    const allGroups = this.dataService.modifierCategories();
+    const selectedGroupIds = new Set(product.modifierCategoryIds || []);
+    
+    const orderedSelectedIds = product.modifierCategoryOrder || (product.modifierCategoryIds || []);
+
+    const selectedGroups = orderedSelectedIds
+        .map(id => allGroups.find(g => g.id === id))
+        .filter((g): g is ModifierCategory => !!g);
+
+    const unselectedGroups = allGroups.filter(g => !selectedGroupIds.has(g.id));
+
+    return [...selectedGroups, ...unselectedGroups];
+  });
+
   // --- MODAL & FORM HANDLING ---
   openModal(type: ModalType) { this.activeModal.set(type); }
   closeModal() {
@@ -151,12 +171,17 @@ export class AdminComponent {
   
   // Special cases: Product, Modifier
   startNewProduct() {
-    this.editingProduct.set({ id: 'new_' + uuidv4(), name: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], productSpecificSizes: [] });
+    this.editingProduct.set({ id: 'new_' + uuidv4(), name: '', basePrice: 0, cost: 0, categoryId: '', modifierCategoryIds: [], modifierCategoryOrder: [], productSpecificSizes: [] });
     this.openModal('product');
   }
 
   editProduct(product: Product) {
-    this.editingProduct.set(JSON.parse(JSON.stringify(product)));
+    const productCopy = JSON.parse(JSON.stringify(product));
+    // Ensure modifierCategoryOrder exists if modifierCategoryIds does, for backward compatibility
+    if (productCopy.modifierCategoryIds && !productCopy.modifierCategoryOrder) {
+        productCopy.modifierCategoryOrder = [...productCopy.modifierCategoryIds];
+    }
+    this.editingProduct.set(productCopy);
     this.openModal('product');
   }
 
@@ -299,6 +324,52 @@ export class AdminComponent {
 
   // --- HELPERS ---
   
+  addProductSpecificSize() {
+    this.editingProduct.update(p => {
+      if (!p) return p;
+      const newSize = {id: uuidv4(), name: '', price: 0, cost: 0};
+      const existingSizes = p.productSpecificSizes || [];
+      // If we add a specific size, the base price is no longer used and should be 0.
+      return { ...p, basePrice: 0, productSpecificSizes: [...existingSizes, newSize] };
+    });
+  }
+
+  moveModifierCategory(index: number, direction: 'up' | 'down') {
+    const categories = this.dataService.modifierCategories();
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+
+    if (newIndex < 0 || newIndex >= categories.length) {
+      return;
+    }
+    
+    const newCategories = [...categories];
+    const [movedItem] = newCategories.splice(index, 1);
+    newCategories.splice(newIndex, 0, movedItem);
+    
+    this.dataService.reorderModifierCategories(newCategories);
+  }
+
+  moveModifierGroupForProduct(groupId: string, direction: 'up' | 'down') {
+    this.editingProduct.update(p => {
+        if (!p) return p;
+
+        const currentOrder = p.modifierCategoryOrder || [...(p.modifierCategoryIds || [])];
+        const index = currentOrder.indexOf(groupId);
+        if (index === -1) return p;
+
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= currentOrder.length) {
+            return p;
+        }
+
+        const newOrder = [...currentOrder];
+        const [movedItem] = newOrder.splice(index, 1);
+        newOrder.splice(newIndex, 0, movedItem);
+
+        return { ...p, modifierCategoryOrder: newOrder };
+    });
+  }
+
   handleImageUpload(event: Event, callback: (base64: string) => void) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -383,17 +454,30 @@ export class AdminComponent {
   toggleModifierCategoryForProduct(groupId: string, event: Event) {
     if (!this.editingProduct()) return;
     const isChecked = (event.target as HTMLInputElement).checked;
+
     this.editingProduct.update(p => {
-      if (!p) return null;
-      const currentIds = p.modifierCategoryIds || [];
-      if (isChecked) {
-        if (!currentIds.includes(groupId)) {
-          return { ...p, modifierCategoryIds: [...currentIds, groupId] };
+        if (!p) return null;
+
+        const currentIds = new Set(p.modifierCategoryIds || []);
+        let currentOrder = p.modifierCategoryOrder || [...(p.modifierCategoryIds || [])];
+
+        if (isChecked) {
+            currentIds.add(groupId);
+            if (!currentOrder.includes(groupId)) {
+                // Add to the end of the order list when checked
+                currentOrder.push(groupId);
+            }
+        } else {
+            currentIds.delete(groupId);
+            // Remove from the order list when unchecked
+            currentOrder = currentOrder.filter(id => id !== groupId);
         }
-      } else {
-        return { ...p, modifierCategoryIds: currentIds.filter(id => id !== groupId) };
-      }
-      return p;
+
+        return { 
+            ...p, 
+            modifierCategoryIds: Array.from(currentIds),
+            modifierCategoryOrder: currentOrder
+        };
     });
   }
 }

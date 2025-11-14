@@ -238,6 +238,10 @@ export class DataService {
   saveModifierCategory(category: ModifierCategory) { this.saveItem(this.modifierCategories.update.bind(this.modifierCategories), this.modifierCategories(), category); }
   deleteModifierCategory(id: string) { this.deleteItem(this.modifierCategories.update.bind(this.modifierCategories), id); }
   
+  reorderModifierCategories(categories: ModifierCategory[]) {
+    this.modifierCategories.set(categories);
+  }
+
   saveExpense(expense: Expense) { this.saveItem(this.expenses.update.bind(this.expenses), this.expenses(), expense); }
   deleteExpense(id: string) { this.deleteItem(this.expenses.update.bind(this.expenses), id); }
 
