@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal, computed, effect, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
-import { Product } from '../../models/product.model';
+import { Product, Modifier } from '../../models/product.model';
 import { CartComponent } from '../cart/cart.component';
 import { FormsModule } from '@angular/forms';
 
@@ -112,5 +112,21 @@ export class MenuComponent implements OnInit, OnDestroy {
     if (this.timer) {
       clearInterval(this.timer);
     }
+  }
+
+  getStartingPrice(product: Product): number {
+    let sizes: Modifier[] = [];
+
+    if (product.productSpecificSizes && product.productSpecificSizes.length > 0) {
+      sizes = product.productSpecificSizes;
+    } else if (product.categoryId === 'acai') { 
+      sizes = this.dataService.sizes();
+    }
+
+    if (sizes.length > 0) {
+      return Math.min(...sizes.map(s => s.price));
+    }
+
+    return product.basePrice;
   }
 }

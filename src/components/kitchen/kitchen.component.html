@@ -12,6 +12,9 @@
           <div class="border border-[var(--border-color)] rounded-lg shadow-sm">
             <div class="p-4 bg-[var(--bg-page)] rounded-t-lg">
                 <p class="font-bold text-lg text-[var(--text-primary)]">{{ order.customerName }}</p>
+                @if(order.referencePoint) {
+                  <p class="text-sm text-[var(--text-secondary)]"><strong>Ref:</strong> {{order.referencePoint}}</p>
+                }
                 <p class="text-xs text-[var(--text-secondary)] font-mono">#{{ order.id }}</p>
             </div>
             <div class="p-4 space-y-3">
@@ -57,6 +60,9 @@
           <div class="border border-purple-300 rounded-lg shadow-sm">
             <div class="p-4 bg-purple-50 rounded-t-lg">
                 <p class="font-bold text-lg text-purple-800">{{ order.customerName }}</p>
+                @if(order.referencePoint) {
+                  <p class="text-sm text-purple-600"><strong>Ref:</strong> {{order.referencePoint}}</p>
+                }
                 <p class="text-xs text-purple-500 font-mono">#{{ order.id }}</p>
             </div>
             <div class="p-4 space-y-3">

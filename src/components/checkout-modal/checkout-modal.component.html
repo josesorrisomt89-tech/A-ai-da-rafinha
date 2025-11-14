@@ -57,7 +57,7 @@
             <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Bairro</label>
             <select [ngModel]="selectedNeighborhoodId()" (ngModelChange)="selectedNeighborhoodId.set($event)" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)]">
               <option [ngValue]="null" disabled>Selecione seu bairro</option>
-              @for(zone of dataService.deliveryZones(); track zone.id) {
+              @for(zone of sortedDeliveryZones(); track zone.id) {
                 <option [ngValue]="zone.id">{{zone.neighborhood}}</option>
               }
             </select>
@@ -65,6 +65,10 @@
           <div>
             <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Rua, Número e Complemento</label>
             <input type="text" [ngModel]="customerStreetAddress()" (ngModelChange)="customerStreetAddress.set($event)" placeholder="Ex: Rua das Flores, 123, Apto 4" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Ponto de Referência (Opcional)</label>
+            <input type="text" [ngModel]="referencePoint()" (ngModelChange)="referencePoint.set($event)" placeholder="Ex: Próximo à padaria" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
           </div>
           <div class="!mt-6">
             <label class="flex items-center gap-2 cursor-pointer text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
@@ -130,6 +134,9 @@
                 }
                 <p class="font-bold">Cliente: <span class="font-normal">{{order.customerName}}</span></p>
                 <p class="font-bold">Endereço: <span class="font-normal">{{order.neighborhood}}, {{order.customerAddress}}</span></p>
+                @if(order.referencePoint) {
+                  <p class="font-bold">Ref: <span class="font-normal">{{order.referencePoint}}</span></p>
+                }
                 <p class="font-bold">Código do Pedido: <span class="font-normal">{{order.id}}</span></p>
                 <p class="border-t border-b border-dashed my-3 py-1">DETALHES DO PEDIDO</p>
                 

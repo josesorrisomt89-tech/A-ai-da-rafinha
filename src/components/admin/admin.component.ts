@@ -100,6 +100,10 @@ export class AdminComponent {
   
   accountsReceivable = computed(() => this.dataService.orders().filter(o => o.paymentMethod === 'fiado' && o.paymentStatus === 'unpaid'));
 
+  sortedDeliveryZones = computed(() => {
+    return [...this.dataService.deliveryZones()].sort((a, b) => a.neighborhood.localeCompare(b.neighborhood));
+  });
+
   // This computed signal will prepare the list of modifier groups for the editing modal.
   // It will show selected groups first, in their custom order, followed by unselected groups.
   productModifierGroupsForEditing = computed(() => {

@@ -82,6 +82,7 @@
               </select>
              </div>
              <div><label class="block text-sm font-medium">Endereço (Rua, Número, Comp.)</label><input type="text" [(ngModel)]="customerAddress" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
+             <div><label class="block text-sm font-medium">Ponto de Referência</label><input type="text" [(ngModel)]="referencePoint" class="mt-1 block w-full p-2 border rounded-md bg-transparent border-[var(--border-color)]"></div>
               <div class="flex items-center justify-between pt-2">
                  <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" [(ngModel)]="isFreeDelivery" class="form-checkbox h-5 w-5 rounded text-[var(--color-primary)]"> Entrega Grátis</label>
                  <div class="text-right"><p class="text-sm">Taxa de Entrega</p><p class="font-bold">R$ {{ deliveryFee().toFixed(2) }}</p></div>
@@ -183,6 +184,7 @@
                 <p>{{ order.customerName }} - {{ order.customerPhone }}</p>
                 @if(order.customerCpf) { <p>CPF: {{ order.customerCpf }}</p> }
                 <p>{{ order.neighborhood }}, {{ order.customerAddress }}</p>
+                @if(order.referencePoint) { <p>Ref: {{ order.referencePoint }}</p> }
               </div>
             }
             <div class="space-y-2 mt-4">

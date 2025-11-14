@@ -21,6 +21,7 @@ export class CheckoutModalComponent {
   customerName = signal('');
   customerPhone = signal('');
   customerStreetAddress = signal('');
+  referencePoint = signal('');
   selectedNeighborhoodId = signal<string | null>(null);
   paymentMethod = signal('pix');
   cashForChange = signal<number | null>(null);
@@ -145,6 +146,10 @@ export class CheckoutModalComponent {
     return this.dataService.deliveryZones().find(z => z.id === id);
   });
   
+  sortedDeliveryZones = computed(() => {
+    return [...this.dataService.deliveryZones()].sort((a, b) => a.neighborhood.localeCompare(b.neighborhood));
+  });
+
   deliveryFee = computed(() => this.selectedDeliveryZone()?.fee ?? 0);
 
   isFormValid = computed(() => {
@@ -179,6 +184,7 @@ export class CheckoutModalComponent {
         this.customerPhone.set(info.phone || '');
         this.selectedNeighborhoodId.set(info.neighborhoodId || null);
         this.customerStreetAddress.set(info.streetAddress || '');
+        this.referencePoint.set(info.referencePoint || '');
         this.hasSavedInfo.set(true);
       }
     } catch (e) {
@@ -194,6 +200,7 @@ export class CheckoutModalComponent {
         phone: this.customerPhone(),
         neighborhoodId: this.selectedNeighborhoodId(),
         streetAddress: this.customerStreetAddress(),
+        referencePoint: this.referencePoint(),
       };
       localStorage.setItem(this.CUSTOMER_INFO_KEY, JSON.stringify(info));
       this.hasSavedInfo.set(true);
@@ -209,6 +216,7 @@ export class CheckoutModalComponent {
       this.customerPhone.set('');
       this.selectedNeighborhoodId.set(null);
       this.customerStreetAddress.set('');
+      this.referencePoint.set('');
       this.hasSavedInfo.set(false);
     } catch (e) {
       console.error('Error removing customer info from localStorage', e);
@@ -241,6 +249,7 @@ export class CheckoutModalComponent {
       neighborhood: zone.neighborhood,
       deliveryFee: zone.fee,
       scheduledDeliveryTime: scheduledTimestamp,
+      referencePoint: this.referencePoint(),
     });
     
     this.dataService.saveOrderToHistory(order);
@@ -264,8 +273,11 @@ export class CheckoutModalComponent {
     }
 
     message += `*Cliente:* ${order.customerName}\n`;
-    message += `*Endereço:* ${order.neighborhood}, ${order.customerAddress}\n\n`;
-    message += `*Itens do Pedido:*\n`;
+    message += `*Endereço:* ${order.neighborhood}, ${order.customerAddress}\n`;
+    if (order.referencePoint) {
+      message += `*Ponto de Referência:* ${order.referencePoint}\n`;
+    }
+    message += `\n*Itens do Pedido:*\n`;
     
     order.items.forEach(item => {
         message += `---------------------\n`;

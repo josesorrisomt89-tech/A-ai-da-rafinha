@@ -23,6 +23,7 @@ export class PosComponent {
   customerName = signal('');
   customerPhone = signal('');
   customerAddress = signal('');
+  referencePoint = signal('');
   selectedNeighborhoodId = signal<string | null>(null);
   isFreeDelivery = signal(false);
   
@@ -137,6 +138,7 @@ export class PosComponent {
       customerName: this.isDelivery() || this.selectedPaymentMethod() === 'fiado' ? this.customerName() : 'Cliente Balcão',
       customerPhone: this.isDelivery() || this.selectedPaymentMethod() === 'fiado' ? this.customerPhone() : '',
       customerAddress: this.isDelivery() || this.selectedPaymentMethod() === 'fiado' ? this.customerAddress() : '',
+      referencePoint: this.isDelivery() ? this.referencePoint() : undefined,
       neighborhood: this.isDelivery() ? this.selectedDeliveryZone()?.neighborhood ?? '' : '',
       deliveryFee: this.deliveryFee(),
       paymentMethod: this.selectedPaymentMethod()!,
@@ -164,6 +166,7 @@ export class PosComponent {
     this.customerName.set('');
     this.customerPhone.set('');
     this.customerAddress.set('');
+    this.referencePoint.set('');
     this.selectedNeighborhoodId.set(null);
     this.isFreeDelivery.set(false);
     
