@@ -34,7 +34,7 @@ export class CheckoutModalComponent {
   // Customer info persistence
   saveInfo = signal(true);
   hasSavedInfo = signal(false);
-  private readonly CUSTOMER_INFO_KEY = 'acai_app_customer_info';
+  private readonly CUSTOMER_INFO_KEY = 'acai_app_v7_customer_info';
 
   constructor() {
     this.loadCustomerInfo();

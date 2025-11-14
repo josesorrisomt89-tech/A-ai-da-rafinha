@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from './notification.service';
 import { MENU_DATA } from '../data/menu-data';
 
+const STORAGE_PREFIX = 'acai_app_v7_'; // Versioned prefix to invalidate old cache
+
 const EMPTY_SETTINGS: AppSettings = {
     storeName: "Carregando...",
     document: "", address: "", phone: "", whatsappNumber: "", instagramUrl: "", facebookUrl: "", logoUrl: "", bannerUrl: "",
@@ -13,7 +15,7 @@ const EMPTY_SETTINGS: AppSettings = {
     accentColor: '#ff69b4', textColorOnPrimary: '#ffffff', backgroundColorPage: '#f3e5f5',
     backgroundColorCard: '#ffffff', textColorPrimary: '#333333', textColorSecondary: '#666666', borderColor: '#e0e0e0',
 };
-const ORDER_HISTORY_KEY = 'acai_app_order_history';
+const ORDER_HISTORY_KEY = 'order_history'; // Key without prefix
 const MAX_HISTORY_ITEMS = 10;
 
 @Injectable({ providedIn: 'root' })
@@ -68,7 +70,7 @@ export class DataService {
   // --- LOCAL STORAGE ---
   private saveToLocalStorage(key: string, data: any) {
     try {
-      localStorage.setItem(`acai_app_${key}`, JSON.stringify(data));
+      localStorage.setItem(`${STORAGE_PREFIX}${key}`, JSON.stringify(data));
     } catch (e) {
       console.error('Error saving to localStorage', e);
     }
@@ -76,7 +78,7 @@ export class DataService {
 
   private loadFromLocalStorage<T>(key: string, defaultValue: T): T {
     try {
-      const stored = localStorage.getItem(`acai_app_${key}`);
+      const stored = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
       return stored ? JSON.parse(stored) : defaultValue;
     } catch (e) {
       console.error('Error reading from localStorage', e);
