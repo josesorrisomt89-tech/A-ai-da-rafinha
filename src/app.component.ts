@@ -1,4 +1,3 @@
-// FIX: Inject DataService and add effect for dynamic theming.
 import { Component, ChangeDetectionStrategy, signal, inject, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
@@ -15,6 +14,7 @@ import { Product, Permission } from './models/product.model';
 import { NotificationService } from './services/notification.service';
 import { DataService } from './services/data.service';
 import { OrderSyncService } from './services/order-sync.service';
+import { ThemeService } from './services/theme.service';
 
 type View = 'landing' | 'menu' | 'pos' | 'admin' | 'track' | 'kitchen';
 
@@ -40,6 +40,7 @@ export class AppComponent {
   private notificationService = inject(NotificationService);
   dataService = inject(DataService);
   private orderSyncService = inject(OrderSyncService); // Initializes the service
+  private themeService = inject(ThemeService); // Initializes the service
   
   currentView = signal<View>('landing');
   isAuthenticated = computed(() => !!this.dataService.currentUser());
@@ -50,22 +51,7 @@ export class AppComponent {
   isPosLoginModalOpen = signal(false);
 
   constructor() {
-    effect(() => {
-      const settings = this.dataService.settings();
-      const root = document.documentElement;
-      if (settings) {
-        root.style.setProperty('--color-primary', settings.primaryColor);
-        root.style.setProperty('--color-primary-hover', settings.primaryColorHover);
-        root.style.setProperty('--color-primary-light-tint', settings.primaryColorLightTint);
-        root.style.setProperty('--color-accent', settings.accentColor);
-        root.style.setProperty('--color-text-on-primary', settings.textColorOnPrimary);
-        root.style.setProperty('--bg-page', settings.backgroundColorPage);
-        root.style.setProperty('--bg-card', settings.backgroundColorCard);
-        root.style.setProperty('--text-primary', settings.textColorPrimary);
-        root.style.setProperty('--text-secondary', settings.textColorSecondary);
-        root.style.setProperty('--border-color', settings.borderColor);
-      }
-    });
+    // Theming is now handled by ThemeService
   }
 
   handleViewChange(view: View) {

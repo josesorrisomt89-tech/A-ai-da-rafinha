@@ -9,21 +9,20 @@
  *   authDomain: "meu-acai-12345.firebaseapp.com",
  *   ...
  */
-const firebaseConfig = {
-    apiKey: "AIzaSyAjWUJltQO3uHgsh5rBE3GqGP7AgU6BYVs",
-    authDomain: "cardapio-acai-da-rafinha.firebaseapp.com",
-    databaseURL: "https://cardapio-acai-da-rafinha-default-rtdb.firebaseio.com",
-    projectId: "cardapio-acai-da-rafinha",
-    storageBucket: "cardapio-acai-da-rafinha.firebasestorage.app",
-    messagingSenderId: "1018377130538",
-    appId: "1:1018377130538:web:5084d03b3285d8da05e953",
-    measurementId: "G-9DXVJ9QXRB"
-  };
+export const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
 /**
  * Verifica se a configuração do Firebase foi alterada do valor padrão.
  * @returns {boolean} True se a configuração parece ter sido preenchida.
  */
 export const isFirebaseConfigured = (): boolean => {
-    return FIREBASE_CONFIG.apiKey !== "AIzaSyAjWUJltQO3uHgsh5rBE3GqGP7AgU6BYVs" && FIREBASE_CONFIG.projectId !== "cardapio-acai-da-rafinha";
+    return FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY" && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID";
 }
