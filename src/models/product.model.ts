@@ -71,6 +71,7 @@ export interface Order {
   status: OrderStatus;
   isOnlineOrder: boolean;
   paymentStatus: PaymentStatus;
+  scheduledDeliveryTime?: number;
   // Fields for Fiado
   customerCpf?: string;
   paymentDueDate?: string; // YYYY-MM-DD

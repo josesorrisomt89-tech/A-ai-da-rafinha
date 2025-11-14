@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
@@ -27,6 +27,111 @@ export class CheckoutModalComponent {
 
   finalOrder = signal<Order | null>(null);
 
+  // Scheduling state
+  scheduledDate = signal<string>('');
+  scheduledTime = signal<string>('');
+
+  constructor() {
+    effect(() => {
+        if (!this.isStoreOpen() && this.availableScheduleDays().length > 0) {
+            this.scheduledDate.set(this.availableScheduleDays()[0].value);
+        }
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+        if (this.scheduledDate() && this.availableScheduleTimes().length > 0) {
+            this.scheduledTime.set(this.availableScheduleTimes()[0]);
+        }
+    }, { allowSignalWrites: true });
+  }
+
+  isStoreOpen = computed(() => {
+    const settings = this.dataService.settings();
+    if (settings.isTemporarilyClosed) {
+      return false;
+    }
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const dayMap: { [key: number]: string } = { 0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado' };
+    const todayName = dayMap[dayOfWeek];
+    
+    const todayHours = settings.openingHours.find(h => h.day === todayName);
+
+    if (!todayHours || !todayHours.isOpen) {
+      return false;
+    }
+
+    return currentTime >= todayHours.open && currentTime < todayHours.close;
+  });
+
+  availableScheduleDays = computed(() => {
+      const days = [];
+      const dayMap: { [key: number]: string } = { 0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado' };
+      const today = new Date();
+
+      for (let i = 0; i < 7; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() + i);
+          const dayName = dayMap[date.getDay()];
+          const schedule = this.dataService.settings().openingHours.find(h => h.day === dayName);
+
+          if (schedule && schedule.isOpen) {
+              const dateStr = date.toISOString().split('T')[0];
+              const label = i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : date.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit' });
+              days.push({ value: dateStr, label: label });
+          }
+      }
+      return days;
+  });
+
+  availableScheduleTimes = computed(() => {
+    const selectedDateStr = this.scheduledDate();
+    if (!selectedDateStr) return [];
+
+    const date = new Date(`${selectedDateStr}T12:00:00.000Z`); // Use midday to avoid timezone issues
+    const dayMap: { [key: number]: string } = { 0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado' };
+    const dayName = dayMap[date.getUTCDay()];
+    const schedule = this.dataService.settings().openingHours.find(h => h.day === dayName);
+
+    if (!schedule || !schedule.isOpen) return [];
+    
+    const times: string[] = [];
+    let [startHour, startMinute] = schedule.open.split(':').map(Number);
+    let [endHour, endMinute] = schedule.close.split(':').map(Number);
+
+    // Handle overnight closing times
+    if (endHour < startHour) {
+      endHour += 24;
+    }
+
+    const now = new Date();
+    const isToday = new Date().toISOString().split('T')[0] === selectedDateStr;
+
+    let currentHour = now.getHours();
+    let currentMinute = now.getMinutes();
+    
+    // Start from the next full 30-minute interval if it's today
+    if(isToday) {
+        startHour = currentMinute > 30 ? currentHour + 1 : currentHour;
+        startMinute = currentMinute > 30 ? 0 : 30;
+    }
+
+    let time = new Date();
+    time.setHours(startHour, startMinute, 0, 0);
+
+    let end_time = new Date();
+    end_time.setHours(endHour, endMinute, 0, 0);
+
+    while (time < end_time) {
+        times.push(time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        time.setMinutes(time.getMinutes() + 30);
+    }
+    return times;
+  });
+  
   selectedDeliveryZone = computed(() => {
     const id = this.selectedNeighborhoodId();
     if (!id) return null;
@@ -35,18 +140,21 @@ export class CheckoutModalComponent {
   
   deliveryFee = computed(() => this.selectedDeliveryZone()?.fee ?? 0);
 
-  isFormValid = computed(() => 
-    this.customerName().trim().length > 2 && 
-    this.customerPhone().trim().length > 8 &&
-    this.customerStreetAddress().trim().length > 5 &&
-    this.selectedNeighborhoodId() !== null
-  );
+  isFormValid = computed(() => {
+    const isBaseValid = this.customerName().trim().length > 2 && 
+      this.customerPhone().trim().length > 8 &&
+      this.customerStreetAddress().trim().length > 5 &&
+      this.selectedNeighborhoodId() !== null;
+
+    if (!this.isStoreOpen()) {
+        return isBaseValid && !!this.scheduledDate() && !!this.scheduledTime();
+    }
+    return isBaseValid;
+  });
 
   totalWithDelivery = computed(() => this.dataService.cartTotal() + this.deliveryFee());
   
   changeDue = computed(() => {
-    // Use the final order's total for calculation after the cart is cleared.
-    // If the order hasn't been finalized yet, use the live total from the cart.
     const total = this.finalOrder()?.total ?? this.totalWithDelivery();
     const paid = this.cashForChange();
     if (paid === null || paid < total) {
@@ -61,13 +169,22 @@ export class CheckoutModalComponent {
     const zone = this.selectedDeliveryZone();
     if (!zone) return;
 
+    let scheduledTimestamp: number | undefined = undefined;
+    if (!this.isStoreOpen()) {
+        const [hour, minute] = this.scheduledTime().split(':').map(Number);
+        const deliveryDate = new Date(this.scheduledDate());
+        deliveryDate.setHours(hour, minute);
+        scheduledTimestamp = deliveryDate.getTime();
+    }
+
     const order = this.dataService.placeOnlineOrder({
       customerName: this.customerName(),
       customerPhone: this.customerPhone(),
       customerAddress: this.customerStreetAddress(),
       paymentMethod: this.paymentMethod(),
       neighborhood: zone.neighborhood,
-      deliveryFee: zone.fee
+      deliveryFee: zone.fee,
+      scheduledDeliveryTime: scheduledTimestamp,
     });
 
     this.finalOrder.set(order);
@@ -81,6 +198,14 @@ export class CheckoutModalComponent {
     const storeNumber = this.dataService.settings().whatsappNumber;
     
     let message = `Olá! Gostaria de fazer o seguinte pedido:\n\n`;
+
+    if (order.scheduledDeliveryTime) {
+      const scheduledDate = new Date(order.scheduledDeliveryTime);
+      message += `*>>> PEDIDO AGENDADO <<<\n`;
+      message += `*Data de Entrega:* ${scheduledDate.toLocaleDateString('pt-BR')}\n`;
+      message += `*Horário de Entrega:* ${scheduledDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n\n`;
+    }
+
     message += `*Cliente:* ${order.customerName}\n`;
     message += `*Endereço:* ${order.neighborhood}, ${order.customerAddress}\n\n`;
     message += `*Itens do Pedido:*\n`;

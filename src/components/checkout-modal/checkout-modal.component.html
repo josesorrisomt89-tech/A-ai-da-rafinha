@@ -12,6 +12,34 @@
 
         <!-- Body -->
         <div class="p-6 overflow-y-auto space-y-4">
+          @if (!isStoreOpen()) {
+            <div class="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-r-lg">
+                <h3 class="font-bold">Loja Fechada no Momento</h3>
+                <p class="text-sm">Você pode agendar seu pedido para nosso próximo horário de funcionamento.</p>
+            </div>
+            <div>
+              <h3 class="text-md font-semibold text-[var(--text-primary)] mb-2">Agendar Entrega</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Data</label>
+                  <select [ngModel]="scheduledDate()" (ngModelChange)="scheduledDate.set($event)" class="w-full p-3 border border-[var(--border-color)] rounded-lg">
+                      @for(day of availableScheduleDays(); track day.value) {
+                        <option [value]="day.value">{{ day.label }}</option>
+                      }
+                  </select>
+                </div>
+                 <div>
+                  <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Horário</label>
+                   <select [ngModel]="scheduledTime()" (ngModelChange)="scheduledTime.set($event)" class="w-full p-3 border border-[var(--border-color)] rounded-lg">
+                      @for(time of availableScheduleTimes(); track time) {
+                        <option [value]="time">{{ time }}</option>
+                      }
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+
           <div>
             <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Seu Nome</label>
             <input type="text" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" placeholder="Digite seu nome completo" class="w-full p-3 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]">
@@ -66,7 +94,7 @@
            <div class="flex justify-between text-sm text-[var(--text-secondary)]"><span>Taxa de Entrega</span><span>R$ {{ deliveryFee().toFixed(2) }}</span></div>
            <div class="flex justify-between items-center text-xl font-bold text-[var(--text-primary)]"><span>Total</span><span>R$ {{ totalWithDelivery().toFixed(2) }}</span></div>
            <button (click)="submitOrder()" class="w-full bg-[var(--color-primary)] text-[var(--color-text-on-primary)] font-bold py-3 px-8 rounded-lg shadow-md hover:bg-[var(--color-primary-hover)] transition-all transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed" [disabled]="!isFormValid()">
-             Confirmar Pedido
+             {{ isStoreOpen() ? 'Confirmar Pedido' : 'Agendar Pedido' }}
            </button>
         </div>
       }
@@ -78,11 +106,17 @@
                 <div class="flex justify-center items-center h-12 w-12 bg-green-100 rounded-full mx-auto mb-3">
                 <svg class="h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <h2 class="text-xl font-bold text-[var(--text-primary)]">Pedido Enviado com Sucesso!</h2>
+                <h2 class="text-xl font-bold text-[var(--text-primary)]">{{ order.scheduledDeliveryTime ? 'Pedido Agendado com Sucesso!' : 'Pedido Enviado com Sucesso!' }}</h2>
                 <p class="text-sm text-[var(--text-secondary)] mt-1">A loja já recebeu seu pedido. Você pode acompanhar usando o código abaixo.</p>
             </div>
 
             <div class="p-6 overflow-y-auto font-mono text-sm text-[var(--text-primary)]">
+                @if(order.scheduledDeliveryTime) {
+                  <div class="p-2 mb-3 bg-blue-100/60 rounded-md border border-blue-200 text-blue-900">
+                    <p class="font-bold">ENTREGA AGENDADA PARA:</p>
+                    <p>{{ order.scheduledDeliveryTime | date:'dd/MM/yyyy' }} às {{ order.scheduledDeliveryTime | date:'HH:mm' }}</p>
+                  </div>
+                }
                 <p class="font-bold">Cliente: <span class="font-normal">{{order.customerName}}</span></p>
                 <p class="font-bold">Endereço: <span class="font-normal">{{order.neighborhood}}, {{order.customerAddress}}</span></p>
                 <p class="font-bold">Código do Pedido: <span class="font-normal">{{order.id}}</span></p>

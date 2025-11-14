@@ -82,7 +82,8 @@ export class AdminComponent {
 
 
   // Order Status Columns
-  pendingOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'pending').sort((a,b) => a.timestamp - b.timestamp));
+  pendingOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'pending' && (!o.scheduledDeliveryTime || o.scheduledDeliveryTime <= Date.now())).sort((a,b) => a.timestamp - b.timestamp));
+  scheduledOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'pending' && o.scheduledDeliveryTime && o.scheduledDeliveryTime > Date.now()).sort((a,b) => a.scheduledDeliveryTime! - b.scheduledDeliveryTime!));
   confirmedOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'accepted').sort((a,b) => a.timestamp - b.timestamp));
   preparingOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'preparing').sort((a,b) => a.timestamp - b.timestamp));
   awaitingDeliveryOrders = computed(() => this.dataService.orders().filter(o => o.isOnlineOrder && o.status === 'awaiting_delivery').sort((a,b) => a.timestamp - b.timestamp));

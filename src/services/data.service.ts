@@ -152,7 +152,7 @@ export class DataService {
   }
 
   // --- ORDERS ---
-  placeOnlineOrder(details: { customerName: string; customerPhone: string; customerAddress: string; paymentMethod: string; neighborhood: string; deliveryFee: number; }): Order {
+  placeOnlineOrder(details: { customerName: string; customerPhone: string; customerAddress: string; paymentMethod: string; neighborhood: string; deliveryFee: number; scheduledDeliveryTime?: number; }): Order {
     const newOrder: Order = {
       id: `WEB-${Date.now().toString()}`,
       timestamp: Date.now(),
@@ -166,7 +166,8 @@ export class DataService {
       paymentMethod: details.paymentMethod,
       status: 'pending',
       isOnlineOrder: true,
-      paymentStatus: 'pending'
+      paymentStatus: 'pending',
+      scheduledDeliveryTime: details.scheduledDeliveryTime
     };
     
     // Add locally for customer's receipt page and for admin to see.
