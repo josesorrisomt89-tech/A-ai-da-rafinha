@@ -3,7 +3,6 @@ import { Product, Category, Modifier, ModifierCategory, CartItem, Order, AppSett
 import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from './notification.service';
 import { MENU_DATA } from '../data/menu-data';
-import { OrderSyncService } from './order-sync.service';
 
 const EMPTY_SETTINGS: AppSettings = {
     storeName: "Carregando...",
@@ -18,7 +17,6 @@ const EMPTY_SETTINGS: AppSettings = {
 @Injectable({ providedIn: 'root' })
 export class DataService {
   private notificationService = inject(NotificationService);
-  private orderSyncService = inject(OrderSyncService);
 
   // Core Data Signals
   products = signal<Product[]>([]);
@@ -58,33 +56,6 @@ export class DataService {
       this.saveToLocalStorage('expenses', this.expenses());
       this.saveToLocalStorage('accountsPayable', this.accountsPayable());
       this.saveToLocalStorage('cashRegisterHistory', this.cashRegisterHistory());
-    });
-
-    // Subscribe to new orders from the sync service
-    this.orderSyncService.newOrders$.subscribe(newOrder => {
-      // Check if order already exists to avoid duplicates
-      const exists = this.orders().some(o => o.id === newOrder.id);
-      if (!exists) {
-        this.orders.update(current => [newOrder, ...current]);
-        
-        // Only notify if an admin user is logged in
-        if (this.currentUser()) {
-          this.notificationService.notifyNewOrder();
-        }
-      }
-    });
-
-    // Start listening for orders when a user logs in, and stop when they log out.
-    effect((onCleanup) => {
-      if (this.currentUser()) {
-        this.orderSyncService.startListeningForOrders().catch(err => {
-            console.error('Failed to start listening for Firebase orders:', err);
-        });
-        
-        onCleanup(() => {
-          this.orderSyncService.stopListeningForOrders();
-        });
-      }
     });
   }
 
@@ -198,13 +169,13 @@ export class DataService {
       paymentStatus: 'pending'
     };
     
-    // Add locally for customer's receipt page
+    // Add locally for customer's receipt page and for admin to see.
     this.orders.update(current => [newOrder, ...current]);
     
-    // Send to the cloud for the admin to receive in real-time
-    this.orderSyncService.sendOrder(newOrder).catch(err => {
-        console.error("Failed to sync order:", err);
-    });
+    // Notify admin if logged in
+    if (this.currentUser()) {
+      this.notificationService.notifyNewOrder();
+    }
 
     this.clearCart();
     return newOrder;

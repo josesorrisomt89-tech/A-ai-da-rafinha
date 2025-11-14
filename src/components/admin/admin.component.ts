@@ -5,9 +5,8 @@ import { DataService } from '../../services/data.service';
 import { NotificationService } from '../../services/notification.service';
 import { Product, Category, Modifier, ModifierCategory, Order, OrderStatus, AppSettings, DeliveryZone, Expense, AccountPayable, User, Permission, PaymentStatus } from '../../models/product.model';
 import { v4 as uuidv4 } from 'uuid';
-import { TutorialComponent } from '../tutorial/tutorial.component';
 
-type AdminView = 'orders' | 'cash_register' | 'finance' | 'products' | 'modifiers' | 'categories' | 'delivery' | 'settings' | 'tutorial';
+type AdminView = 'orders' | 'cash_register' | 'finance' | 'products' | 'modifiers' | 'categories' | 'delivery' | 'settings';
 type ModalType = 'none' | 'product' | 'category' | 'modifier_group' | 'modifier' | 'delivery_zone' | 'user' | 'expense' | 'payable' | 'open_cash_register' | 'close_cash_register' | 'view_order';
 type FinanceTab = 'expenses' | 'payable' | 'receivable';
 type SettingsTab = 'store' | 'menu' | 'operational' | 'appearance';
@@ -17,7 +16,7 @@ type SettingsTab = 'store' | 'menu' | 'operational' | 'appearance';
   selector: 'Admin',
   templateUrl: './admin.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, TutorialComponent],
+  imports: [CommonModule, FormsModule],
 })
 export class AdminComponent {
   dataService = inject(DataService);
@@ -79,7 +78,6 @@ export class AdminComponent {
     { id: 'categories', label: 'Categorias', icon: '📚', permission: 'access_categories' },
     { id: 'delivery', label: 'Áreas de Entrega', icon: '🚚', permission: 'access_delivery' },
     { id: 'settings', label: 'Configurações', icon: '⚙️', permission: 'access_settings' },
-    { id: 'tutorial', label: 'Ajuda e Tutorial', icon: '❓', permission: 'access_settings' },
   ].filter(item => this.hasPermission(item.permission as Permission)));
 
 

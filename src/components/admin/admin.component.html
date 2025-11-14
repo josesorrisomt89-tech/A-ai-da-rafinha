@@ -370,25 +370,22 @@
                   </div>
                   <div class="mt-8 pt-6 border-t border-dashed border-[var(--border-color)] grid grid-cols-2 gap-8">
                     <div>
-                      <h3 class="text-xl font-semibold">Como Publicar Suas Alterações Para Clientes</h3>
-                      <ol class="text-[var(--text-secondary)] text-sm my-2 list-decimal list-inside space-y-1">
-                          <li>Exporte seus dados clicando no botão abaixo. Isso irá baixar o arquivo 'menu-data.ts'.</li>
-                          <li>Na estrutura de arquivos do projeto, localize a pasta `src/data`.</li>
-                          <li>Substitua o arquivo `menu-data.ts` existente dentro de `src/data` pelo arquivo que você acabou de baixar.</li>
-                          <li>Após salvar e publicar o site, as alterações estarão visíveis para todos.</li>
-                      </ol>
+                      <h3 class="text-xl font-semibold">Exportar Dados (Backup)</h3>
+                      <p class="text-[var(--text-secondary)] text-sm my-2">
+                        Clique para baixar um arquivo (<code>menu-data.ts</code>) com todas as configurações de produtos, categorias e etc. Guarde este arquivo como um backup de segurança.
+                      </p>
                       <button type="button" (click)="exportData()" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
-                          1. Exportar Dados para Publicação
+                          Exportar Dados
                       </button>
                     </div>
                      <div>
-                      <h3 class="text-xl font-semibold">Backup e Restauração Local</h3>
+                      <h3 class="text-xl font-semibold">Importar Dados (Restaurar)</h3>
                        <p class="text-[var(--text-secondary)] text-sm my-2">
-                          Isto serve para restaurar seus dados neste navegador. Use um arquivo 'menu-data.ts' ou 'menu.json' que você exportou anteriormente.
+                          Restaure suas configurações a partir de um arquivo <code>menu-data.ts</code> que você exportou anteriormente. Esta ação substituirá os dados atuais.
                       </p>
                       <input type="file" #fileInput (change)="onFileSelected($event)" accept=".json,.ts" class="hidden">
                       <button type="button" (click)="fileInput.click()" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">
-                          Importar Backup Local
+                          Importar Dados
                       </button>
                     </div>
                   </div>
@@ -440,9 +437,6 @@
         </div>
         </form>
         }
-      }
-      @case ('tutorial') {
-        <app-tutorial (closeTutorial)="activeAdminView.set('settings')"></app-tutorial>
       }
       @default {
         <div class="bg-white p-6 rounded-lg shadow-md">
